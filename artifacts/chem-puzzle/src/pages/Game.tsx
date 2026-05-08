@@ -18,6 +18,7 @@ export default function Game() {
   const {
     grid,
     cycleCell,
+    markYesInSubgrid,
     crossedClues,
     toggleClue,
     reset,
@@ -113,7 +114,8 @@ export default function Game() {
             <LogicGrid 
               puzzle={puzzle} 
               gridState={grid} 
-              onCellClick={cycleCell} 
+              onCellClick={cycleCell}
+              onCellDoubleClick={markYesInSubgrid}
             />
           </div>
 

@@ -1,14 +1,17 @@
-import React from "react";
+import React, { useRef } from "react";
 import { motion } from "framer-motion";
 import { Check, X } from "lucide-react";
 import { PuzzleDef } from "../lib/puzzles";
 import { getCellId, CellState } from "../hooks/useLogicGrid";
 import { cn } from "@/lib/utils";
 
+const DOUBLE_CLICK_MS = 300;
+
 interface LogicGridProps {
   puzzle: PuzzleDef;
   gridState: Record<string, CellState>;
   onCellClick: (item1: string, item2: string) => void;
+  onCellDoubleClick: (item1: string, item2: string) => void;
 }
 
 const CELL = 32;
@@ -24,12 +27,29 @@ function VerticalLabel({ text, className }: { text: string; className?: string }
   );
 }
 
-export function LogicGrid({ puzzle, gridState, onCellClick }: LogicGridProps) {
+export function LogicGrid({ puzzle, gridState, onCellClick, onCellDoubleClick }: LogicGridProps) {
   if (puzzle.categories.length !== 3) {
     return <div>Only 3 categories supported.</div>;
   }
 
   const [cat0, cat1, cat2] = puzzle.categories;
+  const timerRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+
+  const handleCellClick = (item1: string, item2: string) => {
+    const key = getCellId(item1, item2);
+    if (timerRef.current[key]) {
+      // Second click within window — double-click
+      clearTimeout(timerRef.current[key]);
+      delete timerRef.current[key];
+      onCellDoubleClick(item1, item2);
+    } else {
+      // First click — wait to see if another follows
+      timerRef.current[key] = setTimeout(() => {
+        delete timerRef.current[key];
+        onCellClick(item1, item2);
+      }, DOUBLE_CLICK_MS);
+    }
+  };
 
   const renderCell = (itemRow: string, itemCol: string, borderClasses: string) => {
     const id = getCellId(itemRow, itemCol);
@@ -44,7 +64,7 @@ export function LogicGrid({ puzzle, gridState, onCellClick }: LogicGridProps) {
           "flex items-center justify-center border-b border-r border-border cursor-pointer hover:bg-muted/50 select-none transition-colors",
           borderClasses
         )}
-        onClick={() => onCellClick(itemRow, itemCol)}
+        onClick={() => handleCellClick(itemRow, itemCol)}
       >
         {state === "yes" && (
           <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="text-primary">

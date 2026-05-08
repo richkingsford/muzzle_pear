@@ -89,25 +89,44 @@ export function useLogicGrid(puzzle: PuzzleDef) {
     });
   }, [puzzle]);
 
+  // Single click: empty → no → yes → empty, no auto-propagation
   const cycleCell = useCallback((item1: string, item2: string) => {
     const id = getCellId(item1, item2);
-    const current = grid[id] || "empty";
-
-    if (current === "empty") {
-      // empty → YES: apply full auto-logic (propagate NOs to siblings)
-      updateCell(item1, item2, "yes");
-    } else if (current === "yes") {
-      // YES → NO: just place the X, no auto-logic
-      setGrid(prev => ({ ...prev, [id]: "no" }));
-    } else {
-      // NO → empty: just clear it
-      setGrid(prev => {
-        const next = { ...prev };
+    setGrid(prev => {
+      const current = prev[id] || "empty";
+      const next = { ...prev };
+      if (current === "empty") {
+        next[id] = "no";
+      } else if (current === "no") {
+        next[id] = "yes";
+      } else {
         delete next[id];
-        return next;
+      }
+      return next;
+    });
+  }, []);
+
+  // Double-click: mark YES and auto-fill NOs within the same sub-grid only
+  const markYesInSubgrid = useCallback((item1: string, item2: string) => {
+    const cat1 = puzzle.categories.find(c => c.items.includes(item1));
+    const cat2 = puzzle.categories.find(c => c.items.includes(item2));
+    if (!cat1 || !cat2) return;
+
+    setGrid(prev => {
+      const next = { ...prev };
+      // Mark this cell YES
+      next[getCellId(item1, item2)] = "yes";
+      // X out the rest of the row within this sub-grid (same item1, other item2s)
+      cat2.items.forEach(other => {
+        if (other !== item2) next[getCellId(item1, other)] = "no";
       });
-    }
-  }, [grid, updateCell]);
+      // X out the rest of the column within this sub-grid (same item2, other item1s)
+      cat1.items.forEach(other => {
+        if (other !== item1) next[getCellId(other, item2)] = "no";
+      });
+      return next;
+    });
+  }, [puzzle]);
 
   const checkSolution = useCallback(() => {
     let allCorrect = true;
@@ -165,6 +184,7 @@ export function useLogicGrid(puzzle: PuzzleDef) {
   return {
     grid,
     cycleCell,
+    markYesInSubgrid,
     crossedClues,
     toggleClue,
     reset,
