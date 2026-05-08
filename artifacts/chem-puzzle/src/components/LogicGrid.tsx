@@ -11,18 +11,25 @@ interface LogicGridProps {
   onCellClick: (item1: string, item2: string) => void;
 }
 
+const CELL = 32;
+
+function VerticalLabel({ text, className }: { text: string; className?: string }) {
+  return (
+    <span
+      style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
+      className={cn("text-xs font-semibold tracking-wider uppercase text-muted-foreground whitespace-nowrap", className)}
+    >
+      {text}
+    </span>
+  );
+}
+
 export function LogicGrid({ puzzle, gridState, onCellClick }: LogicGridProps) {
-  // A standard logic grid layout for 3 categories:
-  // Let categories be Cat0, Cat1, Cat2
-  // Top headers: Cat1, Cat2
-  // Left headers: Cat0, Cat1
-  
   if (puzzle.categories.length !== 3) {
-    return <div>Only 3 categories supported in this visualizer.</div>;
+    return <div>Only 3 categories supported.</div>;
   }
 
   const [cat0, cat1, cat2] = puzzle.categories;
-  const cellSize = 32;
 
   const renderCell = (itemRow: string, itemCol: string, borderClasses: string) => {
     const id = getCellId(itemRow, itemCol);
@@ -32,137 +39,156 @@ export function LogicGrid({ puzzle, gridState, onCellClick }: LogicGridProps) {
       <div
         key={`${itemRow}-${itemCol}`}
         data-testid={`cell-${id}`}
+        style={{ width: CELL, height: CELL }}
         className={cn(
-          "w-8 h-8 flex items-center justify-center border-b border-r border-border cursor-pointer hover:bg-muted/50 select-none transition-colors",
+          "flex items-center justify-center border-b border-r border-border cursor-pointer hover:bg-muted/50 select-none transition-colors",
           borderClasses
         )}
         onClick={() => onCellClick(itemRow, itemCol)}
       >
         {state === "yes" && (
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            className="text-primary"
-          >
-            <Check size={20} strokeWidth={3} />
+          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="text-primary">
+            <Check size={18} strokeWidth={3} />
           </motion.div>
         )}
         {state === "no" && (
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            className="text-destructive/70"
-          >
-            <X size={20} strokeWidth={2.5} />
+          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="text-destructive/70">
+            <X size={18} strokeWidth={2.5} />
           </motion.div>
         )}
       </div>
     );
   };
 
-  const renderSubGrid = (rowCatItems: string[], colCatItems: string[], isLastCol: boolean, isLastRow: boolean) => {
-    return (
-      <div className={cn(
-        "flex flex-col border-border border-l border-t",
-        isLastCol && "border-r-2 border-border/80",
-        isLastRow && "border-b-2 border-border/80",
-      )}>
-        {rowCatItems.map((rItem, rIdx) => (
-          <div key={rItem} className="flex">
-            {colCatItems.map((cItem, cIdx) => {
-              const borders = cn(
-                rIdx === rowCatItems.length - 1 && "border-b-0",
-                cIdx === colCatItems.length - 1 && "border-r-0"
-              );
-              return renderCell(rItem, cItem, borders);
-            })}
-          </div>
-        ))}
-      </div>
-    );
-  };
+  const renderSubGrid = (rowItems: string[], colItems: string[]) => (
+    <div className="border-l border-t border-border">
+      {rowItems.map((rItem, rIdx) => (
+        <div key={rItem} className="flex">
+          {colItems.map((cItem, cIdx) => renderCell(rItem, cItem, cn(
+            rIdx === rowItems.length - 1 && "border-b-0",
+            cIdx === colItems.length - 1 && "border-r-0"
+          )))}
+        </div>
+      ))}
+    </div>
+  );
+
+  const colHeaderHeight = 96;
+  const catLabelHeight = 24;
 
   return (
     <div className="flex p-4 overflow-auto">
       <div className="flex flex-col">
-        {/* Top Headers */}
+
+        {/* ── Top header row ── */}
         <div className="flex">
-          <div className="w-32 h-32" /> {/* Empty top-left corner */}
-          
-          {/* Top headers: Cat1 */}
-          <div className="flex flex-col items-center">
-            <div className="h-8 font-semibold text-xs tracking-wider text-muted-foreground uppercase flex items-center justify-center w-full">{cat1.name}</div>
-            <div className="flex h-24">
-              {cat1.items.map((item, idx) => (
-                <div key={item} className="w-8 relative flex justify-center items-end pb-2">
-                  <span className="transform -rotate-90 origin-bottom-left absolute left-1/2 bottom-2 text-sm whitespace-nowrap text-foreground">{item}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-          
-          {/* Top headers: Cat2 */}
-          <div className="flex flex-col items-center ml-2">
-            <div className="h-8 font-semibold text-xs tracking-wider text-muted-foreground uppercase flex items-center justify-center w-full">{cat2.name}</div>
-            <div className="flex h-24">
-              {cat2.items.map((item, idx) => (
-                <div key={item} className="w-8 relative flex justify-center items-end pb-2">
-                  <span className="transform -rotate-90 origin-bottom-left absolute left-1/2 bottom-2 text-sm whitespace-nowrap text-foreground">{item}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+          {/* Corner: matches the left column width */}
+          <div style={{ width: 128, height: colHeaderHeight + catLabelHeight }} />
 
-        {/* Row 1: Cat0 */}
-        <div className="flex mt-2">
-          {/* Left headers: Cat0 */}
-          <div className="w-32 flex flex-col justify-between items-end pr-4">
-            <div className="flex flex-col w-full h-full border-r border-border/80">
-              {cat0.items.map(item => (
-                <div key={item} className="h-8 flex items-center justify-end text-sm pr-2 text-foreground font-medium">{item}</div>
-              ))}
+          {/* Cat1 column headers */}
+          <div className="flex flex-col">
+            <div
+              className="flex items-center justify-center font-semibold text-xs tracking-wider uppercase text-muted-foreground"
+              style={{ width: cat1.items.length * CELL, height: catLabelHeight }}
+            >
+              {cat1.name}
             </div>
-          </div>
-          
-          {/* Grid Cat0 x Cat1 */}
-          {renderSubGrid(cat0.items, cat1.items, false, false)}
-          
-          {/* Spacer */}
-          <div className="w-2" />
-
-          {/* Grid Cat0 x Cat2 */}
-          {renderSubGrid(cat0.items, cat2.items, true, false)}
-        </div>
-
-        {/* Row 2: Cat1 (only with Cat2) */}
-        <div className="flex mt-2">
-          {/* Left headers: Cat1 */}
-          <div className="w-32 flex flex-col justify-between items-end pr-4">
-            <div className="flex flex-col w-full h-full border-r border-border/80">
+            <div className="flex" style={{ height: colHeaderHeight }}>
               {cat1.items.map(item => (
-                <div key={item} className="h-8 flex items-center justify-end text-sm pr-2 text-foreground font-medium">{item}</div>
+                <div
+                  key={item}
+                  style={{ width: CELL, height: colHeaderHeight }}
+                  className="flex items-end justify-center pb-2"
+                >
+                  <VerticalLabel text={item} className="text-foreground font-medium" />
+                </div>
               ))}
             </div>
           </div>
-          
-          {/* Empty Space where Cat1 x Cat1 would be */}
-          <div style={{ width: cat1.items.length * cellSize }} />
-          
-          {/* Spacer */}
-          <div className="w-2" />
 
-          {/* Grid Cat1 x Cat2 */}
-          {renderSubGrid(cat1.items, cat2.items, true, true)}
+          <div style={{ width: 8 }} />
+
+          {/* Cat2 column headers */}
+          <div className="flex flex-col">
+            <div
+              className="flex items-center justify-center font-semibold text-xs tracking-wider uppercase text-muted-foreground"
+              style={{ width: cat2.items.length * CELL, height: catLabelHeight }}
+            >
+              {cat2.name}
+            </div>
+            <div className="flex" style={{ height: colHeaderHeight }}>
+              {cat2.items.map(item => (
+                <div
+                  key={item}
+                  style={{ width: CELL, height: colHeaderHeight }}
+                  className="flex items-end justify-center pb-2"
+                >
+                  <VerticalLabel text={item} className="text-foreground font-medium" />
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-        
-        {/* Left header names side-labels */}
-        <div className="absolute left-2 top-[12rem] h-[8rem] w-6 flex items-center justify-center">
-           <span className="transform -rotate-90 font-semibold text-xs tracking-wider text-muted-foreground uppercase whitespace-nowrap">{cat0.name}</span>
+
+        {/* ── Grid row 1: Cat0 rows ── */}
+        <div className="flex">
+          {/* Left label column: category name + item names */}
+          <div style={{ width: 128 }} className="flex border-r border-border/60 pr-1">
+            {/* Category name label */}
+            <div
+              style={{ width: 20 }}
+              className="flex items-center justify-center"
+            >
+              <VerticalLabel text={cat0.name} />
+            </div>
+            {/* Item names */}
+            <div className="flex flex-col flex-1">
+              {cat0.items.map(item => (
+                <div
+                  key={item}
+                  style={{ height: CELL }}
+                  className="flex items-center justify-end pr-2 text-sm font-medium text-foreground"
+                >
+                  {item}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {renderSubGrid(cat0.items, cat1.items)}
+          <div style={{ width: 8 }} />
+          {renderSubGrid(cat0.items, cat2.items)}
         </div>
-        <div className="absolute left-2 top-[20.5rem] h-[8rem] w-6 flex items-center justify-center">
-           <span className="transform -rotate-90 font-semibold text-xs tracking-wider text-muted-foreground uppercase whitespace-nowrap">{cat1.name}</span>
+
+        <div style={{ height: 8 }} />
+
+        {/* ── Grid row 2: Cat1 rows (paired with Cat2 only) ── */}
+        <div className="flex">
+          {/* Left label column: category name + item names */}
+          <div style={{ width: 128 }} className="flex border-r border-border/60 pr-1">
+            <div style={{ width: 20 }} className="flex items-center justify-center">
+              <VerticalLabel text={cat1.name} />
+            </div>
+            <div className="flex flex-col flex-1">
+              {cat1.items.map(item => (
+                <div
+                  key={item}
+                  style={{ height: CELL }}
+                  className="flex items-center justify-end pr-2 text-sm font-medium text-foreground"
+                >
+                  {item}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Blank space under Cat1 column headers (no self-pairing) */}
+          <div style={{ width: cat1.items.length * CELL }} />
+          <div style={{ width: 8 }} />
+
+          {renderSubGrid(cat1.items, cat2.items)}
         </div>
+
       </div>
     </div>
   );

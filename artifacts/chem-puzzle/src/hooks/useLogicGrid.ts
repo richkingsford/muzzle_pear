@@ -92,21 +92,20 @@ export function useLogicGrid(puzzle: PuzzleDef) {
   const cycleCell = useCallback((item1: string, item2: string) => {
     const id = getCellId(item1, item2);
     const current = grid[id] || "empty";
-    const nextState: CellState = current === "empty" ? "yes" : current === "yes" ? "no" : "empty";
-    
-    // For manual interaction, we want to allow un-setting, but our auto-logic is aggressive.
-    // If setting to empty, we actually need to rebuild the grid from other known states to be perfectly safe,
-    // but for this simple version, we'll just clear it and hope the user knows they might leave dangling auto-logic.
-    // A better way is just to set it to empty and not trigger inverse auto-logic, or rebuild.
-    // Rebuilding:
-    if (nextState === "empty") {
+
+    if (current === "empty") {
+      // empty → YES: apply full auto-logic (propagate NOs to siblings)
+      updateCell(item1, item2, "yes");
+    } else if (current === "yes") {
+      // YES → NO: just place the X, no auto-logic
+      setGrid(prev => ({ ...prev, [id]: "no" }));
+    } else {
+      // NO → empty: just clear it
       setGrid(prev => {
         const next = { ...prev };
         delete next[id];
         return next;
       });
-    } else {
-      updateCell(item1, item2, nextState);
     }
   }, [grid, updateCell]);
 
