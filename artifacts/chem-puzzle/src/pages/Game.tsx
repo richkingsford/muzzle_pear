@@ -268,15 +268,7 @@ export default function Game() {
           <Button
             variant="outline"
             size="lg"
-            onClick={() => {
-              const changed = autoFill();
-              if (!changed) {
-                toast({
-                  title: "Nothing to fill yet",
-                  description: "Place at least one checkmark (double-click a cell) first, then Auto Fill will work.",
-                });
-              }
-            }}
+            onClick={autoFill}
             disabled={isSolved}
             className="w-full gap-2 bg-card hover:bg-muted text-foreground border-border"
             data-testid="button-autofill"

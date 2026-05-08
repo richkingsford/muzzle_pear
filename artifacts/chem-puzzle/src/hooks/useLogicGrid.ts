@@ -128,70 +128,35 @@ export function useLogicGrid(puzzle: PuzzleDef) {
     });
   }, [puzzle]);
 
-  // Apply mutual exclusivity + last-remaining iteratively until no more changes.
-  // Returns true if anything changed, false if nothing to do.
-  const autoFill = useCallback((): boolean => {
-    let current: Record<string, CellState> = { ...grid };
-    let anyPass = false;
-    let changed = true;
+  // Cheat-code: stamp the full solution onto the grid immediately.
+  const autoFill = useCallback(() => {
+    const next: Record<string, CellState> = {};
 
-    while (changed) {
-      changed = false;
-      for (let i = 0; i < puzzle.categories.length; i++) {
-        for (let j = i + 1; j < puzzle.categories.length; j++) {
-          const catA = puzzle.categories[i];
-          const catB = puzzle.categories[j];
-
-          // Mutual exclusivity: for every YES, X out siblings in same sub-grid row/col
-          catA.items.forEach(itemA => {
-            catB.items.forEach(itemB => {
-              if (current[getCellId(itemA, itemB)] === "yes") {
-                catB.items.forEach(otherB => {
-                  if (otherB !== itemB) {
-                    const id = getCellId(itemA, otherB);
-                    if (!current[id] || current[id] === "empty") {
-                      current = { ...current, [id]: "no" };
-                      changed = true; anyPass = true;
-                    }
-                  }
-                });
-                catA.items.forEach(otherA => {
-                  if (otherA !== itemA) {
-                    const id = getCellId(otherA, itemB);
-                    if (!current[id] || current[id] === "empty") {
-                      current = { ...current, [id]: "no" };
-                      changed = true; anyPass = true;
-                    }
-                  }
-                });
-              }
-            });
-          });
-
-          // Last-remaining: if only one empty cell in a sub-grid row, mark it YES
-          catA.items.forEach(itemA => {
-            const row = catB.items.map(b => ({ b, s: current[getCellId(itemA, b)] || "empty" }));
-            const empties = row.filter(x => x.s === "empty");
-            if (empties.length === 1 && row.filter(x => x.s === "yes").length === 0) {
-              current = { ...current, [getCellId(itemA, empties[0].b)]: "yes" };
-              changed = true; anyPass = true;
-            }
-          });
-          catB.items.forEach(itemB => {
-            const col = catA.items.map(a => ({ a, s: current[getCellId(a, itemB)] || "empty" }));
-            const empties = col.filter(x => x.s === "empty");
-            if (empties.length === 1 && col.filter(x => x.s === "yes").length === 0) {
-              current = { ...current, [getCellId(empties[0].a, itemB)]: "yes" };
-              changed = true; anyPass = true;
-            }
-          });
+    // Build the set of all correct cross-category pairs from the solution
+    const correctPairs = new Set<string>();
+    puzzle.solution.forEach(sol => {
+      const items = Object.values(sol);
+      for (let i = 0; i < items.length; i++) {
+        for (let j = i + 1; j < items.length; j++) {
+          correctPairs.add(getCellId(items[i], items[j]));
         }
+      }
+    });
+
+    // Mark every cell in every sub-grid YES or NO
+    for (let i = 0; i < puzzle.categories.length; i++) {
+      for (let j = i + 1; j < puzzle.categories.length; j++) {
+        puzzle.categories[i].items.forEach(itemA => {
+          puzzle.categories[j].items.forEach(itemB => {
+            const id = getCellId(itemA, itemB);
+            next[id] = correctPairs.has(id) ? "yes" : "no";
+          });
+        });
       }
     }
 
-    if (anyPass) setGrid(current);
-    return anyPass;
-  }, [grid, puzzle]);
+    setGrid(next);
+  }, [puzzle]);
 
   const checkSolution = useCallback(() => {
     let allCorrect = true;
