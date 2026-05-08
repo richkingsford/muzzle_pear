@@ -128,6 +128,38 @@ export function useLogicGrid(puzzle: PuzzleDef) {
     });
   }, [puzzle]);
 
+  // Apply mutual exclusivity across all current YES cells in the grid
+  const autoFill = useCallback(() => {
+    setGrid(prev => {
+      const next = { ...prev };
+      for (let i = 0; i < puzzle.categories.length; i++) {
+        for (let j = i + 1; j < puzzle.categories.length; j++) {
+          const catA = puzzle.categories[i];
+          const catB = puzzle.categories[j];
+          catA.items.forEach(itemA => {
+            catB.items.forEach(itemB => {
+              if (next[getCellId(itemA, itemB)] === "yes") {
+                catB.items.forEach(otherB => {
+                  if (otherB !== itemB) {
+                    const id = getCellId(itemA, otherB);
+                    if (!next[id] || next[id] === "empty") next[id] = "no";
+                  }
+                });
+                catA.items.forEach(otherA => {
+                  if (otherA !== itemA) {
+                    const id = getCellId(otherA, itemB);
+                    if (!next[id] || next[id] === "empty") next[id] = "no";
+                  }
+                });
+              }
+            });
+          });
+        }
+      }
+      return next;
+    });
+  }, [puzzle]);
+
   const checkSolution = useCallback(() => {
     let allCorrect = true;
     let anyEmpty = false;
@@ -185,6 +217,7 @@ export function useLogicGrid(puzzle: PuzzleDef) {
     grid,
     cycleCell,
     markYesInSubgrid,
+    autoFill,
     crossedClues,
     toggleClue,
     reset,

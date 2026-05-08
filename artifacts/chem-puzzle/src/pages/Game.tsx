@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Beaker, CheckCircle, RefreshCcw, Trophy, Lightbulb, Layers, X } from "lucide-react";
+import { Beaker, CheckCircle, RefreshCcw, Trophy, Lightbulb, Layers, X, Wand2 } from "lucide-react";
 import { puzzles } from "../lib/puzzles";
 import { useLogicGrid, getCellId } from "../hooks/useLogicGrid";
 import { LogicGrid } from "../components/LogicGrid";
@@ -19,6 +19,7 @@ export default function Game() {
     grid,
     cycleCell,
     markYesInSubgrid,
+    autoFill,
     crossedClues,
     toggleClue,
     reset,
@@ -261,9 +262,20 @@ export default function Game() {
           </div>
         </div>
 
-        {/* Right: Clues */}
-        <div className="w-full xl:w-[400px] shrink-0">
+        {/* Right: Clues + Auto Fill */}
+        <div className="w-full xl:w-[400px] shrink-0 flex flex-col gap-4">
           <CluesPanel puzzle={puzzle} crossedClues={crossedClues} onToggleClue={toggleClue} />
+          <Button
+            variant="outline"
+            size="lg"
+            onClick={autoFill}
+            disabled={isSolved}
+            className="w-full gap-2 bg-card hover:bg-muted text-foreground border-border"
+            data-testid="button-autofill"
+          >
+            <Wand2 size={18} />
+            Auto Fill
+          </Button>
         </div>
       </main>
     </div>
