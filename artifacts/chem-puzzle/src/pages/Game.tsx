@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Beaker, CheckCircle, RefreshCcw, Trophy, Lightbulb } from "lucide-react";
+import { Beaker, CheckCircle, RefreshCcw, Trophy, Lightbulb, Layers, X } from "lucide-react";
 import { puzzles } from "../lib/puzzles";
-import { useLogicGrid } from "../hooks/useLogicGrid";
+import { useLogicGrid, getCellId } from "../hooks/useLogicGrid";
 import { LogicGrid } from "../components/LogicGrid";
 import { CluesPanel } from "../components/CluesPanel";
 import { Button } from "@/components/ui/button";
@@ -27,11 +27,46 @@ export default function Game() {
   } = useLogicGrid(puzzle);
 
   const [isSolved, setIsSolved] = useState(false);
+  const [showHintOverlay, setShowHintOverlay] = useState(false);
+  const [showRuleBox, setShowRuleBox] = useState(false);
 
-  // Reset completion state when puzzle changes or resets
   useEffect(() => {
     setIsSolved(false);
   }, [puzzle, grid]);
+
+  // Compute cells that qualify under the Rule of Mutual Exclusivity:
+  // any empty cell in the same sub-grid row/col as a confirmed YES
+  const hintCells = useMemo<Set<string>>(() => {
+    if (!showHintOverlay) return new Set();
+    const result = new Set<string>();
+    for (let i = 0; i < puzzle.categories.length; i++) {
+      for (let j = i + 1; j < puzzle.categories.length; j++) {
+        const catA = puzzle.categories[i];
+        const catB = puzzle.categories[j];
+        catA.items.forEach(itemA => {
+          catB.items.forEach(itemB => {
+            if (grid[getCellId(itemA, itemB)] === "yes") {
+              // Empty siblings in the same row (same itemA, other itemBs)
+              catB.items.forEach(otherB => {
+                if (otherB !== itemB) {
+                  const id = getCellId(itemA, otherB);
+                  if (!grid[id] || grid[id] === "empty") result.add(id);
+                }
+              });
+              // Empty siblings in the same column (same itemB, other itemAs)
+              catA.items.forEach(otherA => {
+                if (otherA !== itemA) {
+                  const id = getCellId(otherA, itemB);
+                  if (!grid[id] || grid[id] === "empty") result.add(id);
+                }
+              });
+            }
+          });
+        });
+      }
+    }
+    return result;
+  }, [showHintOverlay, grid, puzzle]);
 
   const handleCheck = () => {
     const correct = checkSolution();
@@ -56,9 +91,14 @@ export default function Game() {
     setIsSolved(false);
   };
 
+  const handleToggleHint = () => {
+    const next = !showHintOverlay;
+    setShowHintOverlay(next);
+    if (next) setShowRuleBox(true);
+  };
+
   return (
     <div className="min-h-screen w-full bg-background flex flex-col relative overflow-hidden font-sans">
-      {/* Decorative background elements */}
       <div className="absolute top-[-10%] left-[-5%] w-[40%] h-[40%] rounded-full bg-primary/5 blur-3xl pointer-events-none" />
       <div className="absolute bottom-[-10%] right-[-5%] w-[40%] h-[40%] rounded-full bg-accent/5 blur-3xl pointer-events-none" />
 
@@ -88,9 +128,65 @@ export default function Game() {
         </div>
       </header>
 
+      {/* Rule explanation box */}
+      <AnimatePresence>
+        {showRuleBox && (
+          <motion.div
+            initial={{ opacity: 0, y: -12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          >
+            {/* Backdrop */}
+            <div
+              className="absolute inset-0 bg-black/30 backdrop-blur-sm"
+              onClick={() => setShowRuleBox(false)}
+            />
+            {/* Box */}
+            <div className="relative bg-card border border-border rounded-2xl shadow-2xl max-w-md w-full p-6 z-10">
+              <button
+                onClick={() => setShowRuleBox(false)}
+                className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors"
+                data-testid="button-close-rule-box"
+              >
+                <X size={18} />
+              </button>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center">
+                  <div className="w-3 h-3 rounded-full bg-green-500 opacity-70" />
+                </div>
+                <h2 className="text-lg font-bold font-serif text-foreground">The Rule of Mutual Exclusivity</h2>
+              </div>
+              <p className="text-muted-foreground text-sm leading-relaxed mb-4">
+                In a logic puzzle, each person can have only one item in each category. So once you confirm a match, you can eliminate all the other options in that row or column.
+              </p>
+              <ul className="space-y-2 text-sm">
+                <li className="flex gap-2 items-start">
+                  <span className="mt-1 w-2 h-2 rounded-full bg-green-500 opacity-70 shrink-0" />
+                  <span className="text-foreground">If a row already has its correct match, every other empty cell in that column gets an X.</span>
+                </li>
+                <li className="flex gap-2 items-start">
+                  <span className="mt-1 w-2 h-2 rounded-full bg-green-500 opacity-70 shrink-0" />
+                  <span className="text-foreground">If a column already has its correct match, every other empty cell in that row gets an X.</span>
+                </li>
+              </ul>
+              <p className="mt-4 text-xs text-muted-foreground italic">
+                Green dots mark every cell where this rule applies right now. Double-click any dot to fill the X automatically.
+              </p>
+              <Button
+                className="mt-5 w-full bg-green-600 hover:bg-green-700 text-white"
+                onClick={() => setShowRuleBox(false)}
+                data-testid="button-got-it"
+              >
+                Got it
+              </Button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Main Content */}
       <main className="flex-1 flex flex-col xl:flex-row items-center xl:items-start p-4 sm:p-8 gap-8 z-10 overflow-y-auto">
-        {/* Left: Logic Grid and Controls */}
         <div className="flex flex-col items-center xl:items-start gap-8 flex-1 max-w-4xl mx-auto w-full">
           <AnimatePresence mode="wait">
             {isSolved && (
@@ -116,6 +212,7 @@ export default function Game() {
               gridState={grid} 
               onCellClick={cycleCell}
               onCellDoubleClick={markYesInSubgrid}
+              hintCells={hintCells}
             />
           </div>
 
@@ -141,11 +238,22 @@ export default function Game() {
               <Lightbulb size={18} className="text-accent" />
               Reveal
             </Button>
+            <Button
+              variant={showHintOverlay ? "default" : "outline"}
+              size="lg"
+              onClick={handleToggleHint}
+              className={`gap-2 flex-1 sm:flex-none ${showHintOverlay ? "bg-green-600 hover:bg-green-700 text-white border-green-600" : "bg-card hover:bg-muted text-foreground"}`}
+              data-testid="button-hint-overlay"
+            >
+              <Layers size={18} />
+              {showHintOverlay ? "Hide Hints" : "Hint Overlay"}
+            </Button>
             <Button 
               variant="ghost"
               size="lg"
               onClick={handleReset}
               className="gap-2 text-muted-foreground hover:text-foreground flex-1 sm:flex-none"
+              data-testid="button-reset"
             >
               <RefreshCcw size={18} />
               Reset

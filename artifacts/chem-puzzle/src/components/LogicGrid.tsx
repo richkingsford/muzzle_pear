@@ -12,6 +12,7 @@ interface LogicGridProps {
   gridState: Record<string, CellState>;
   onCellClick: (item1: string, item2: string) => void;
   onCellDoubleClick: (item1: string, item2: string) => void;
+  hintCells?: Set<string>;
 }
 
 const CELL = 32;
@@ -27,7 +28,7 @@ function VerticalLabel({ text, className }: { text: string; className?: string }
   );
 }
 
-export function LogicGrid({ puzzle, gridState, onCellClick, onCellDoubleClick }: LogicGridProps) {
+export function LogicGrid({ puzzle, gridState, onCellClick, onCellDoubleClick, hintCells }: LogicGridProps) {
   if (puzzle.categories.length !== 3) {
     return <div>Only 3 categories supported.</div>;
   }
@@ -75,6 +76,13 @@ export function LogicGrid({ puzzle, gridState, onCellClick, onCellDoubleClick }:
           <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="text-destructive/70">
             <X size={18} strokeWidth={2.5} />
           </motion.div>
+        )}
+        {state === "empty" && hintCells?.has(id) && (
+          <motion.div
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 0.5 }}
+            className="w-3 h-3 rounded-full bg-green-500 pointer-events-none"
+          />
         )}
       </div>
     );
