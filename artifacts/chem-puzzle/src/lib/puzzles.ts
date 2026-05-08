@@ -32,20 +32,20 @@ export const puzzles: PuzzleDef[] = [
     categories: [
       { id: "chemist", name: "Chemist", items: ["Dr. Ada", "Dr. Ben", "Dr. Clara", "Dr. Dion"] },
       { id: "element", name: "Favorite Element", items: ["Carbon", "Oxygen", "Nitrogen", "Sulfur"] },
-      { id: "tool", name: "Lab Tool", items: ["Bunsen Burner", "Microscope", "Centrifuge", "Spectroscope"] }
+      { id: "tool", name: "Lab Tool", items: ["Bunsen Burner", "Microscope", "Test Tube", "Magnifying Glass"] }
     ],
     clues: [
-      { id: "c1", text: "The chemist who loves Carbon uses a Spectroscope." },
+      { id: "c1", text: "The chemist who loves Carbon uses a Magnifying Glass." },
       { id: "c2", text: "Dr. Ben's favorite element is not Sulfur or Nitrogen." },
-      { id: "c3", text: "Dr. Clara does not use a Bunsen Burner or Spectroscope." },
+      { id: "c3", text: "Dr. Clara does not use a Bunsen Burner or Magnifying Glass." },
       { id: "c4", text: "The Microscope user's element is Sulfur." },
-      { id: "c5", text: "Dr. Ada does not use a Centrifuge." },
+      { id: "c5", text: "Dr. Ada does not use a Test Tube." },
       { id: "c6", text: "Dr. Dion's favorite element is not Carbon or Oxygen." }
     ],
     solution: [
-      { chemist: "Dr. Ada", element: "Carbon", tool: "Spectroscope" },
+      { chemist: "Dr. Ada", element: "Carbon", tool: "Magnifying Glass" },
       { chemist: "Dr. Ben", element: "Oxygen", tool: "Bunsen Burner" },
-      { chemist: "Dr. Clara", element: "Nitrogen", tool: "Centrifuge" },
+      { chemist: "Dr. Clara", element: "Nitrogen", tool: "Test Tube" },
       { chemist: "Dr. Dion", element: "Sulfur", tool: "Microscope" }
     ]
   },
