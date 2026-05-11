@@ -128,34 +128,17 @@ export function useLogicGrid(puzzle: PuzzleDef) {
     });
   }, [puzzle]);
 
-  // Cheat-code: stamp the full solution onto the grid immediately.
+  // Apply only what the clues explicitly state — leaves the rest blank for the player.
   const autoFill = useCallback(() => {
-    const next: Record<string, CellState> = {};
-
-    // Build the set of all correct cross-category pairs from the solution
-    const correctPairs = new Set<string>();
-    puzzle.solution.forEach(sol => {
-      const items = Object.values(sol);
-      for (let i = 0; i < items.length; i++) {
-        for (let j = i + 1; j < items.length; j++) {
-          correctPairs.add(getCellId(items[i], items[j]));
-        }
-      }
-    });
-
-    // Mark every cell in every sub-grid YES or NO
-    for (let i = 0; i < puzzle.categories.length; i++) {
-      for (let j = i + 1; j < puzzle.categories.length; j++) {
-        puzzle.categories[i].items.forEach(itemA => {
-          puzzle.categories[j].items.forEach(itemB => {
-            const id = getCellId(itemA, itemB);
-            next[id] = correctPairs.has(id) ? "yes" : "no";
-          });
+    setGrid(prev => {
+      const next = { ...prev };
+      puzzle.clues.forEach(clue => {
+        clue.facts.forEach(({ item1, item2, state }) => {
+          next[getCellId(item1, item2)] = state;
         });
-      }
-    }
-
-    setGrid(next);
+      });
+      return next;
+    });
   }, [puzzle]);
 
   const checkSolution = useCallback(() => {

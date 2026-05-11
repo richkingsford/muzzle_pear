@@ -6,9 +6,16 @@ export interface Category {
   items: string[];
 }
 
+export interface ClueFact {
+  item1: string;
+  item2: string;
+  state: "yes" | "no";
+}
+
 export interface Clue {
   id: string;
   text: string;
+  facts: ClueFact[];
 }
 
 export interface Solution {
@@ -35,12 +42,51 @@ export const puzzles: PuzzleDef[] = [
       { id: "tool", name: "Lab Tool", items: ["Bunsen Burner", "Microscope", "Test Tube", "Magnifying Glass"] }
     ],
     clues: [
-      { id: "c1", text: "The chemist who loves Carbon uses a Magnifying Glass." },
-      { id: "c2", text: "Dr. Ben's favorite element is not Sulfur or Nitrogen." },
-      { id: "c3", text: "Dr. Clara does not use a Bunsen Burner or Magnifying Glass." },
-      { id: "c4", text: "The Microscope user's element is Sulfur." },
-      { id: "c5", text: "Dr. Ada does not use a Test Tube." },
-      { id: "c6", text: "Dr. Dion's favorite element is not Carbon or Oxygen." }
+      {
+        id: "c1",
+        text: "The chemist who loves Carbon uses a Magnifying Glass.",
+        facts: [
+          { item1: "Carbon", item2: "Magnifying Glass", state: "yes" }
+        ]
+      },
+      {
+        id: "c2",
+        text: "Dr. Ben's favorite element is not Sulfur or Nitrogen.",
+        facts: [
+          { item1: "Dr. Ben", item2: "Sulfur", state: "no" },
+          { item1: "Dr. Ben", item2: "Nitrogen", state: "no" }
+        ]
+      },
+      {
+        id: "c3",
+        text: "Dr. Clara does not use a Bunsen Burner or Magnifying Glass.",
+        facts: [
+          { item1: "Dr. Clara", item2: "Bunsen Burner", state: "no" },
+          { item1: "Dr. Clara", item2: "Magnifying Glass", state: "no" }
+        ]
+      },
+      {
+        id: "c4",
+        text: "The Microscope user's element is Sulfur.",
+        facts: [
+          { item1: "Microscope", item2: "Sulfur", state: "yes" }
+        ]
+      },
+      {
+        id: "c5",
+        text: "Dr. Ada does not use a Test Tube.",
+        facts: [
+          { item1: "Dr. Ada", item2: "Test Tube", state: "no" }
+        ]
+      },
+      {
+        id: "c6",
+        text: "Dr. Dion's favorite element is not Carbon or Oxygen.",
+        facts: [
+          { item1: "Dr. Dion", item2: "Carbon", state: "no" },
+          { item1: "Dr. Dion", item2: "Oxygen", state: "no" }
+        ]
+      }
     ],
     solution: [
       { chemist: "Dr. Ada", element: "Carbon", tool: "Magnifying Glass" },
@@ -59,12 +105,55 @@ export const puzzles: PuzzleDef[] = [
       { id: "year", name: "Year", items: ["1903", "1937", "1954", "1964"] }
     ],
     clues: [
-      { id: "c1", text: "Marie's discovery predates all others." },
-      { id: "c2", text: "Linus made his discovery in 1954." },
-      { id: "c3", text: "The Protein Crystallography discovery was in 1964." },
-      { id: "c4", text: "Otto's discovery was not in 1903 or 1964." },
-      { id: "c5", text: "Dorothy did not win in 1937 or 1954." },
-      { id: "c6", text: "Fatty Acid Metabolism was discovered before Vitamin C Structure." }
+      {
+        id: "c1",
+        text: "Marie's discovery predates all others.",
+        facts: [
+          { item1: "Marie", item2: "1937", state: "no" },
+          { item1: "Marie", item2: "1954", state: "no" },
+          { item1: "Marie", item2: "1964", state: "no" }
+        ]
+      },
+      {
+        id: "c2",
+        text: "Linus made his discovery in 1954.",
+        facts: [
+          { item1: "Linus", item2: "1954", state: "yes" }
+        ]
+      },
+      {
+        id: "c3",
+        text: "The Protein Crystallography discovery was in 1964.",
+        facts: [
+          { item1: "Protein Crystallography", item2: "1964", state: "yes" }
+        ]
+      },
+      {
+        id: "c4",
+        text: "Otto's discovery was not in 1903 or 1964.",
+        facts: [
+          { item1: "Otto", item2: "1903", state: "no" },
+          { item1: "Otto", item2: "1964", state: "no" }
+        ]
+      },
+      {
+        id: "c5",
+        text: "Dorothy did not win in 1937 or 1954.",
+        facts: [
+          { item1: "Dorothy", item2: "1937", state: "no" },
+          { item1: "Dorothy", item2: "1954", state: "no" }
+        ]
+      },
+      {
+        id: "c6",
+        text: "Fatty Acid Metabolism was discovered before Vitamin C Structure.",
+        facts: [
+          { item1: "Fatty Acid Metabolism", item2: "1954", state: "no" },
+          { item1: "Fatty Acid Metabolism", item2: "1964", state: "no" },
+          { item1: "Vitamin C Structure", item2: "1903", state: "no" },
+          { item1: "Vitamin C Structure", item2: "1937", state: "no" }
+        ]
+      }
     ],
     solution: [
       { scientist: "Marie", discovery: "Radioactivity", year: "1903" },
@@ -83,12 +172,50 @@ export const puzzles: PuzzleDef[] = [
       { id: "color", name: "Color Produced", items: ["Blue", "Purple", "Yellow", "Pink"] }
     ],
     clues: [
-      { id: "c1", text: "Alex's compound produces a blue color." },
-      { id: "c2", text: "Potassium Permanganate produces a purple color." },
-      { id: "c3", text: "Casey did not synthesize Copper Sulfate or Cobalt Chloride." },
-      { id: "c4", text: "Drew's compound produces a pink color." },
-      { id: "c5", text: "Blake did not synthesize Ferric Chloride." },
-      { id: "c6", text: "Ferric Chloride produces neither blue nor pink." }
+      {
+        id: "c1",
+        text: "Alex's compound produces a blue color.",
+        facts: [
+          { item1: "Alex", item2: "Blue", state: "yes" }
+        ]
+      },
+      {
+        id: "c2",
+        text: "Potassium Permanganate produces a purple color.",
+        facts: [
+          { item1: "Potassium Permanganate", item2: "Purple", state: "yes" }
+        ]
+      },
+      {
+        id: "c3",
+        text: "Casey did not synthesize Copper Sulfate or Cobalt Chloride.",
+        facts: [
+          { item1: "Casey", item2: "Copper Sulfate", state: "no" },
+          { item1: "Casey", item2: "Cobalt Chloride", state: "no" }
+        ]
+      },
+      {
+        id: "c4",
+        text: "Drew's compound produces a pink color.",
+        facts: [
+          { item1: "Drew", item2: "Pink", state: "yes" }
+        ]
+      },
+      {
+        id: "c5",
+        text: "Blake did not synthesize Ferric Chloride.",
+        facts: [
+          { item1: "Blake", item2: "Ferric Chloride", state: "no" }
+        ]
+      },
+      {
+        id: "c6",
+        text: "Ferric Chloride produces neither blue nor pink.",
+        facts: [
+          { item1: "Ferric Chloride", item2: "Blue", state: "no" },
+          { item1: "Ferric Chloride", item2: "Pink", state: "no" }
+        ]
+      }
     ],
     solution: [
       { student: "Alex", compound: "Copper Sulfate", color: "Blue" },
