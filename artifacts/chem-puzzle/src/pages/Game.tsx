@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Beaker, CheckCircle, RefreshCcw, Trophy, Lightbulb, Layers, X, Wand2, Magnet } from "lucide-react";
+import { Beaker, CheckCircle, RefreshCcw, Trophy, Lightbulb, Layers, X, Wand2, Magnet, Link2 } from "lucide-react";
 import { puzzles } from "../lib/puzzles";
 import { useLogicGrid, getCellId } from "../hooks/useLogicGrid";
 import { LogicGrid } from "../components/LogicGrid";
@@ -32,6 +32,8 @@ export default function Game() {
   const [showRuleBox, setShowRuleBox] = useState(false);
   const [showForcedMatchOverlay, setShowForcedMatchOverlay] = useState(false);
   const [showForcedMatchRuleBox, setShowForcedMatchRuleBox] = useState(false);
+  const [showNakedPairsOverlay, setShowNakedPairsOverlay] = useState(false);
+  const [showNakedPairsRuleBox, setShowNakedPairsRuleBox] = useState(false);
 
   useEffect(() => {
     setIsSolved(false);
@@ -96,6 +98,72 @@ export default function Game() {
     return result;
   }, [showForcedMatchOverlay, grid, puzzle]);
 
+  // Hint 3 — Naked Pairs: if two items share exactly the same two remaining candidates,
+  // those two spots are reserved for them — all other items can be eliminated from those spots.
+  const nakedPairsCells = useMemo<Set<string>>(() => {
+    if (!showNakedPairsOverlay) return new Set();
+    const result = new Set<string>();
+
+    for (let i = 0; i < puzzle.categories.length; i++) {
+      for (let j = i + 1; j < puzzle.categories.length; j++) {
+        const catA = puzzle.categories[i];
+        const catB = puzzle.categories[j];
+
+        // Possible catB matches for a given catA item (empty cells, row has no YES yet)
+        const possA = (itemA: string): string[] => {
+          if (catB.items.some(b => grid[getCellId(itemA, b)] === "yes")) return [];
+          return catB.items.filter(b => (grid[getCellId(itemA, b)] || "empty") === "empty");
+        };
+
+        // Possible catA matches for a given catB item (empty cells, col has no YES yet)
+        const possB = (itemB: string): string[] => {
+          if (catA.items.some(a => grid[getCellId(a, itemB)] === "yes")) return [];
+          return catA.items.filter(a => (grid[getCellId(a, itemB)] || "empty") === "empty");
+        };
+
+        const sameSet = (x: string[], y: string[]) =>
+          x.length === y.length && x.every(v => y.includes(v));
+
+        // Naked pairs in rows: two catA items that each have exactly 2 possible catB matches, and they're the same pair
+        for (let ai = 0; ai < catA.items.length; ai++) {
+          for (let aj = ai + 1; aj < catA.items.length; aj++) {
+            const p1 = possA(catA.items[ai]);
+            const p2 = possA(catA.items[aj]);
+            if (p1.length === 2 && sameSet(p1, p2)) {
+              catA.items.forEach(otherA => {
+                if (otherA !== catA.items[ai] && otherA !== catA.items[aj]) {
+                  p1.forEach(b => {
+                    const id = getCellId(otherA, b);
+                    if ((grid[id] || "empty") === "empty") result.add(id);
+                  });
+                }
+              });
+            }
+          }
+        }
+
+        // Naked pairs in columns: two catB items that each have exactly 2 possible catA matches, and they're the same pair
+        for (let bi = 0; bi < catB.items.length; bi++) {
+          for (let bj = bi + 1; bj < catB.items.length; bj++) {
+            const p1 = possB(catB.items[bi]);
+            const p2 = possB(catB.items[bj]);
+            if (p1.length === 2 && sameSet(p1, p2)) {
+              catB.items.forEach(otherB => {
+                if (otherB !== catB.items[bi] && otherB !== catB.items[bj]) {
+                  p1.forEach(a => {
+                    const id = getCellId(a, otherB);
+                    if ((grid[id] || "empty") === "empty") result.add(id);
+                  });
+                }
+              });
+            }
+          }
+        }
+      }
+    }
+    return result;
+  }, [showNakedPairsOverlay, grid, puzzle]);
+
   const handleCheck = () => {
     const correct = checkSolution();
     if (correct) {
@@ -129,6 +197,12 @@ export default function Game() {
     const next = !showForcedMatchOverlay;
     setShowForcedMatchOverlay(next);
     if (next) setShowForcedMatchRuleBox(true);
+  };
+
+  const handleToggleNakedPairs = () => {
+    const next = !showNakedPairsOverlay;
+    setShowNakedPairsOverlay(next);
+    if (next) setShowNakedPairsRuleBox(true);
   };
 
   return (
@@ -209,6 +283,63 @@ export default function Game() {
                 className="mt-5 w-full bg-green-600 hover:bg-green-700 text-white"
                 onClick={() => setShowRuleBox(false)}
                 data-testid="button-got-it"
+              >
+                Got it
+              </Button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Naked Pairs rule box */}
+      <AnimatePresence>
+        {showNakedPairsRuleBox && (
+          <motion.div
+            initial={{ opacity: 0, y: -12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          >
+            <div
+              className="absolute inset-0 bg-black/30 backdrop-blur-sm"
+              onClick={() => setShowNakedPairsRuleBox(false)}
+            />
+            <div className="relative bg-card border border-border rounded-2xl shadow-2xl max-w-md w-full p-6 z-10">
+              <button
+                onClick={() => setShowNakedPairsRuleBox(false)}
+                className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors"
+                data-testid="button-close-naked-pairs-box"
+              >
+                <X size={18} />
+              </button>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-8 h-8 rounded-full bg-violet-500/20 flex items-center justify-center">
+                  <div className="w-3 h-3 rounded-full bg-violet-500 opacity-70" />
+                </div>
+                <h2 className="text-lg font-bold font-serif text-foreground">The Rule of Naked Pairs</h2>
+              </div>
+              <p className="text-muted-foreground text-sm leading-relaxed mb-4">
+                If two items can only go in the same two places, those two places are reserved exclusively for them — nothing else can go there.
+              </p>
+              <ul className="space-y-2 text-sm">
+                <li className="flex gap-2 items-start">
+                  <span className="mt-1 w-2 h-2 rounded-full bg-violet-500 opacity-70 shrink-0" />
+                  <span className="text-foreground">
+                    <strong>Example:</strong> If A can only be X or Y, and B can also only be X or Y, then X and Y are taken. C, D, etc. can be eliminated from X and Y.
+                  </span>
+                </li>
+                <li className="flex gap-2 items-start">
+                  <span className="mt-1 w-2 h-2 rounded-full bg-violet-500 opacity-70 shrink-0" />
+                  <span className="text-foreground">Works in both directions — check rows and columns for pairs sharing the same two candidates.</span>
+                </li>
+              </ul>
+              <p className="mt-4 text-xs text-muted-foreground italic">
+                Purple dots mark every cell that can be eliminated right now using this rule. Double-click any dot to fill the X automatically.
+              </p>
+              <Button
+                className="mt-5 w-full bg-violet-600 hover:bg-violet-700 text-white"
+                onClick={() => setShowNakedPairsRuleBox(false)}
+                data-testid="button-naked-pairs-got-it"
               >
                 Got it
               </Button>
@@ -303,6 +434,7 @@ export default function Game() {
               onCellDoubleClick={markYesInSubgrid}
               hintCells={hintCells}
               forcedMatchCells={forcedMatchCells}
+              nakedPairsCells={nakedPairsCells}
             />
           </div>
 
@@ -347,6 +479,16 @@ export default function Game() {
             >
               <Magnet size={18} />
               {showForcedMatchOverlay ? "Hide Forced" : "Forced Match"}
+            </Button>
+            <Button
+              variant={showNakedPairsOverlay ? "default" : "outline"}
+              size="lg"
+              onClick={handleToggleNakedPairs}
+              className={`gap-2 flex-1 sm:flex-none ${showNakedPairsOverlay ? "bg-violet-600 hover:bg-violet-700 text-white border-violet-600" : "bg-card hover:bg-muted text-foreground"}`}
+              data-testid="button-naked-pairs-overlay"
+            >
+              <Link2 size={18} />
+              {showNakedPairsOverlay ? "Hide Pairs" : "Naked Pairs"}
             </Button>
             <Button 
               variant="ghost"

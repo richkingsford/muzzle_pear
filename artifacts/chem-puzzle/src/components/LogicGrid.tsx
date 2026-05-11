@@ -14,6 +14,7 @@ interface LogicGridProps {
   onCellDoubleClick: (item1: string, item2: string) => void;
   hintCells?: Set<string>;
   forcedMatchCells?: Set<string>;
+  nakedPairsCells?: Set<string>;
 }
 
 const CELL = 32;
@@ -29,7 +30,7 @@ function VerticalLabel({ text, className }: { text: string; className?: string }
   );
 }
 
-export function LogicGrid({ puzzle, gridState, onCellClick, onCellDoubleClick, hintCells, forcedMatchCells }: LogicGridProps) {
+export function LogicGrid({ puzzle, gridState, onCellClick, onCellDoubleClick, hintCells, forcedMatchCells, nakedPairsCells }: LogicGridProps) {
   if (puzzle.categories.length !== 3) {
     return <div>Only 3 categories supported.</div>;
   }
@@ -85,11 +86,18 @@ export function LogicGrid({ puzzle, gridState, onCellClick, onCellDoubleClick, h
             className="w-3 h-3 rounded-full bg-green-500 pointer-events-none"
           />
         )}
-        {state === "empty" && forcedMatchCells?.has(id) && (
+        {state === "empty" && forcedMatchCells?.has(id) && !nakedPairsCells?.has(id) && (
           <motion.div
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 0.6 }}
             className="w-3 h-3 rounded-full bg-amber-400 pointer-events-none"
+          />
+        )}
+        {state === "empty" && nakedPairsCells?.has(id) && (
+          <motion.div
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 0.6 }}
+            className="w-3 h-3 rounded-full bg-violet-500 pointer-events-none"
           />
         )}
       </div>
