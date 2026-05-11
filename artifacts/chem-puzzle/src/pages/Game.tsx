@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Beaker, CheckCircle, RefreshCcw, Trophy, Lightbulb, Layers, X, Wand2 } from "lucide-react";
+import { Beaker, CheckCircle, RefreshCcw, Trophy, Lightbulb, Layers, X, Wand2, Magnet } from "lucide-react";
 import { puzzles } from "../lib/puzzles";
 import { useLogicGrid, getCellId } from "../hooks/useLogicGrid";
 import { LogicGrid } from "../components/LogicGrid";
@@ -30,13 +30,14 @@ export default function Game() {
   const [isSolved, setIsSolved] = useState(false);
   const [showHintOverlay, setShowHintOverlay] = useState(false);
   const [showRuleBox, setShowRuleBox] = useState(false);
+  const [showForcedMatchOverlay, setShowForcedMatchOverlay] = useState(false);
+  const [showForcedMatchRuleBox, setShowForcedMatchRuleBox] = useState(false);
 
   useEffect(() => {
     setIsSolved(false);
   }, [puzzle, grid]);
 
-  // Compute cells that qualify under the Rule of Mutual Exclusivity:
-  // any empty cell in the same sub-grid row/col as a confirmed YES
+  // Hint 1 — Mutual Exclusivity: empty cells in the same sub-grid row/col as a confirmed YES
   const hintCells = useMemo<Set<string>>(() => {
     if (!showHintOverlay) return new Set();
     const result = new Set<string>();
@@ -47,14 +48,12 @@ export default function Game() {
         catA.items.forEach(itemA => {
           catB.items.forEach(itemB => {
             if (grid[getCellId(itemA, itemB)] === "yes") {
-              // Empty siblings in the same row (same itemA, other itemBs)
               catB.items.forEach(otherB => {
                 if (otherB !== itemB) {
                   const id = getCellId(itemA, otherB);
                   if (!grid[id] || grid[id] === "empty") result.add(id);
                 }
               });
-              // Empty siblings in the same column (same itemB, other itemAs)
               catA.items.forEach(otherA => {
                 if (otherA !== itemA) {
                   const id = getCellId(otherA, itemB);
@@ -68,6 +67,34 @@ export default function Game() {
     }
     return result;
   }, [showHintOverlay, grid, puzzle]);
+
+  // Hint 2 — Forced Match: the last empty cell in a row or column (all others are NO, no YES yet)
+  // That cell MUST be the correct match — highlight it in amber so the player can confirm it.
+  const forcedMatchCells = useMemo<Set<string>>(() => {
+    if (!showForcedMatchOverlay) return new Set();
+    const result = new Set<string>();
+    for (let i = 0; i < puzzle.categories.length; i++) {
+      for (let j = i + 1; j < puzzle.categories.length; j++) {
+        const catA = puzzle.categories[i];
+        const catB = puzzle.categories[j];
+        // Check each row (fixed catA item, sweep catB)
+        catA.items.forEach(itemA => {
+          const hasYes = catB.items.some(itemB => grid[getCellId(itemA, itemB)] === "yes");
+          if (hasYes) return;
+          const empties = catB.items.filter(itemB => (grid[getCellId(itemA, itemB)] || "empty") === "empty");
+          if (empties.length === 1) result.add(getCellId(itemA, empties[0]));
+        });
+        // Check each column (fixed catB item, sweep catA)
+        catB.items.forEach(itemB => {
+          const hasYes = catA.items.some(itemA => grid[getCellId(itemA, itemB)] === "yes");
+          if (hasYes) return;
+          const empties = catA.items.filter(itemA => (grid[getCellId(itemA, itemB)] || "empty") === "empty");
+          if (empties.length === 1) result.add(getCellId(empties[0], itemB));
+        });
+      }
+    }
+    return result;
+  }, [showForcedMatchOverlay, grid, puzzle]);
 
   const handleCheck = () => {
     const correct = checkSolution();
@@ -96,6 +123,12 @@ export default function Game() {
     const next = !showHintOverlay;
     setShowHintOverlay(next);
     if (next) setShowRuleBox(true);
+  };
+
+  const handleToggleForcedMatch = () => {
+    const next = !showForcedMatchOverlay;
+    setShowForcedMatchOverlay(next);
+    if (next) setShowForcedMatchRuleBox(true);
   };
 
   return (
@@ -129,7 +162,7 @@ export default function Game() {
         </div>
       </header>
 
-      {/* Rule explanation box */}
+      {/* Mutual Exclusivity rule box */}
       <AnimatePresence>
         {showRuleBox && (
           <motion.div
@@ -138,12 +171,10 @@ export default function Game() {
             exit={{ opacity: 0, y: -12 }}
             className="fixed inset-0 z-50 flex items-center justify-center p-4"
           >
-            {/* Backdrop */}
             <div
               className="absolute inset-0 bg-black/30 backdrop-blur-sm"
               onClick={() => setShowRuleBox(false)}
             />
-            {/* Box */}
             <div className="relative bg-card border border-border rounded-2xl shadow-2xl max-w-md w-full p-6 z-10">
               <button
                 onClick={() => setShowRuleBox(false)}
@@ -186,6 +217,63 @@ export default function Game() {
         )}
       </AnimatePresence>
 
+      {/* Forced Match rule box */}
+      <AnimatePresence>
+        {showForcedMatchRuleBox && (
+          <motion.div
+            initial={{ opacity: 0, y: -12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          >
+            <div
+              className="absolute inset-0 bg-black/30 backdrop-blur-sm"
+              onClick={() => setShowForcedMatchRuleBox(false)}
+            />
+            <div className="relative bg-card border border-border rounded-2xl shadow-2xl max-w-md w-full p-6 z-10">
+              <button
+                onClick={() => setShowForcedMatchRuleBox(false)}
+                className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors"
+                data-testid="button-close-forced-match-box"
+              >
+                <X size={18} />
+              </button>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-8 h-8 rounded-full bg-amber-400/20 flex items-center justify-center">
+                  <div className="w-3 h-3 rounded-full bg-amber-400 opacity-70" />
+                </div>
+                <h2 className="text-lg font-bold font-serif text-foreground">The Rule of Forced Match</h2>
+              </div>
+              <p className="text-muted-foreground text-sm leading-relaxed mb-4">
+                If every option in a row or column has been crossed out except one, that last empty cell <em>must</em> be the correct match — there's nowhere else for it to go.
+              </p>
+              <ul className="space-y-2 text-sm">
+                <li className="flex gap-2 items-start">
+                  <span className="mt-1 w-2 h-2 rounded-full bg-amber-400 opacity-70 shrink-0" />
+                  <span className="text-foreground">
+                    <strong>Example:</strong> If A is matched with X (A–X = ✓), then B cannot also be X (B–X = ✗). In a two-item group, B's only remaining option is Y — so B–Y must be ✓.
+                  </span>
+                </li>
+                <li className="flex gap-2 items-start">
+                  <span className="mt-1 w-2 h-2 rounded-full bg-amber-400 opacity-70 shrink-0" />
+                  <span className="text-foreground">Works for any size group: once all but one option are eliminated, the survivor is the answer.</span>
+                </li>
+              </ul>
+              <p className="mt-4 text-xs text-muted-foreground italic">
+                Amber dots mark every cell that can be confirmed right now using this rule. Double-click any dot to mark it as a match.
+              </p>
+              <Button
+                className="mt-5 w-full bg-amber-500 hover:bg-amber-600 text-white"
+                onClick={() => setShowForcedMatchRuleBox(false)}
+                data-testid="button-forced-match-got-it"
+              >
+                Got it
+              </Button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Main Content */}
       <main className="flex-1 flex flex-col xl:flex-row items-center xl:items-start p-4 sm:p-8 gap-8 z-10 overflow-y-auto">
         <div className="flex flex-col items-center xl:items-start gap-8 flex-1 max-w-4xl mx-auto w-full">
@@ -214,6 +302,7 @@ export default function Game() {
               onCellClick={cycleCell}
               onCellDoubleClick={markYesInSubgrid}
               hintCells={hintCells}
+              forcedMatchCells={forcedMatchCells}
             />
           </div>
 
@@ -247,7 +336,17 @@ export default function Game() {
               data-testid="button-hint-overlay"
             >
               <Layers size={18} />
-              {showHintOverlay ? "Hide Hints" : "Hint Overlay"}
+              {showHintOverlay ? "Hide Mutual" : "Mutual Exclusivity"}
+            </Button>
+            <Button
+              variant={showForcedMatchOverlay ? "default" : "outline"}
+              size="lg"
+              onClick={handleToggleForcedMatch}
+              className={`gap-2 flex-1 sm:flex-none ${showForcedMatchOverlay ? "bg-amber-500 hover:bg-amber-600 text-white border-amber-500" : "bg-card hover:bg-muted text-foreground"}`}
+              data-testid="button-forced-match-overlay"
+            >
+              <Magnet size={18} />
+              {showForcedMatchOverlay ? "Hide Forced" : "Forced Match"}
             </Button>
             <Button 
               variant="ghost"
