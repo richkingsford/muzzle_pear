@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sudoku Hint Trainer</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="src/styles.css">
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Sudoku trainer</p>
+          <h1>Chromatic Sudoku</h1>
+        </div>
+        <div class="top-actions" aria-label="Game toggles">
+          <label class="switch">
+            <input id="autoNotes" type="checkbox" checked>
+            <span>Auto note</span>
+          </label>
+          <button id="themeToggle" class="button ghost" type="button" aria-label="Toggle dark mode">Dark</button>
+        </div>
+      </header>
+
+      <main class="app-main">
+        <section class="board-section" aria-label="Sudoku board area">
+          <div class="board-frame">
+            <div id="board" class="sudoku-board" role="grid" aria-label="Sudoku board"></div>
+          </div>
+
+          <div class="number-pad" aria-label="Number pad"></div>
+
+          <div class="input-toolbar" aria-label="Input mode">
+            <div class="note-split" role="group" aria-label="Pencil controls">
+              <button id="pencilToggle" class="note-button note-main" type="button" aria-label="Toggle pencil mode" aria-pressed="false">
+                <svg aria-hidden="true" viewBox="0 0 24 24">
+                  <path d="M4 20h4l10.5-10.5a2.1 2.1 0 0 0 0-3L17.5 5.5a2.1 2.1 0 0 0-3 0L4 16v4z"></path>
+                  <path d="M13.5 6.5l4 4"></path>
+                </svg>
+                <span>Pencil</span>
+              </button>
+              <button id="noteOnce" class="note-button note-once" type="button" aria-label="Mark one note" aria-pressed="false">1x</button>
+            </div>
+          </div>
+
+          <div class="action-row">
+            <button id="checkPuzzle" class="button primary" type="button">Check</button>
+            <button id="clearCell" class="button" type="button">Clear</button>
+            <button id="resetPuzzle" class="button danger" type="button">Reset</button>
+          </div>
+        </section>
+
+        <aside class="side-panel" aria-label="Sudoku learning panel">
+          <div class="status-strip">
+            <span id="difficultyPill" class="pill">Intermediate</span>
+            <span id="progressText">0 filled</span>
+          </div>
+
+          <section class="level-tools" aria-label="Puzzle levels">
+            <h2>Levels</h2>
+            <select id="levelSelect" class="level-select" aria-label="Choose Sudoku level"></select>
+          </section>
+
+          <section class="hint-tools" aria-label="Hint overlays">
+            <h2>Hint overlays</h2>
+            <div class="hint-buttons" role="list">
+              <button class="hint-button" type="button" data-technique="pair">Naked pair</button>
+              <button class="hint-button" type="button" data-technique="trio">Naked trio</button>
+              <button class="hint-button" type="button" data-technique="xwing">X-Wing</button>
+            </div>
+          </section>
+
+          <section id="hintPanel" class="hint-panel" aria-live="polite"></section>
+          <section class="chemistry-card">
+            <button id="chemistryLink" class="chemistry-link" type="button" aria-expanded="false" aria-controls="chemistryPopup">
+              How Sudoku applies to Chemistry
+            </button>
+            <div id="chemistryPopup" class="chemistry-popup" role="dialog" aria-label="How Sudoku applies to Chemistry" hidden>
+              <p>Sudoku trains constraint thinking: each choice must fit a row, column, and box, much like valence, charge, and structure limit a molecule.</p>
+              <p>Chemists use the same habit to narrow possible compounds, spectra, reaction routes, and lab errors from rules and evidence.</p>
+              <button id="chemistryClose" class="button ghost" type="button">Close</button>
+            </div>
+          </section>
+          <section id="messagePanel" class="message-panel" aria-live="polite"></section>
+        </aside>
+      </main>
+    </div>
+
+    <script src="src/sudoku-core.js"></script>
+    <script src="src/app.js"></script>
+  </body>
+</html>
