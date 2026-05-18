@@ -164,6 +164,18 @@
     return `box ${unitIndex - 17}`;
   }
 
+  function unitKind(unitIndex) {
+    if (unitIndex < 9) {
+      return "row";
+    }
+
+    if (unitIndex < 18) {
+      return "column";
+    }
+
+    return "box";
+  }
+
   function getCandidates(board, index) {
     if (board[index] !== EMPTY) {
       return [];
@@ -245,18 +257,23 @@
   }
 
   function buildNakedExplanation(size, pattern) {
-    const name = size === 2 ? "naked pair" : "naked trio";
     const target = size === 2 ? "two cells" : "three cells";
-    const cells = pattern.cells.map((cell) => formatCell(cell.index));
-    const removeTargets = pattern.eliminations.map((removal) => `${formatDigits(removal.digits)} from ${formatCell(removal.index)}`);
+    const groupDigits = formatDigits(pattern.digits);
+    const eraseText =
+      pattern.eliminations.length === 1
+        ? "the other highlighted cell"
+        : "the other highlighted cells";
 
     return {
       line1:
         size === 2
           ? "A naked pair is two cells in one row, column, or box that share the exact same two candidates."
-          : "A naked trio is three cells in one unit whose combined candidates are exactly three digits.",
-      line2: `Example: ${cells.join(", ")} lock ${formatDigits(pattern.digits)} inside ${pattern.unit.label}, so remove ${removeTargets.join("; ")}.`,
-      fallback: `Example: Find ${target} in one unit whose candidates use only ${size} digits, then erase those digits from nearby cells.`
+          : "A naked trio happens when three open cells in the same row, column, or box are limited to the same three digits between them.",
+      line2:
+        size === 2
+          ? `Example: The highlighted ${target} reserve ${groupDigits} inside ${pattern.unit.label}, so those digits can be erased from ${eraseText} in that ${pattern.unit.kind}.`
+          : `Example: The highlighted ${target} reserve ${groupDigits} inside ${pattern.unit.label}. A trio cell may show only two of those digits; together the three cells still claim all three, so those digits can be erased from ${eraseText} in that ${pattern.unit.kind}.`,
+      fallback: `Example: Find ${target} in one row, column, or box whose candidates use only ${size} digits in total, then erase those digits from the other cells there.`
     };
   }
 
@@ -304,6 +321,7 @@
           unit: {
             index: unitIndex,
             label: unitLabel(unitIndex),
+            kind: unitKind(unitIndex),
             cells: unit.slice()
           },
           cells: group.map((cell) => ({
@@ -325,7 +343,10 @@
   }
 
   function buildXWingExplanation(pattern) {
-    const removeTargets = pattern.eliminations.map((index) => formatCell(index)).join(", ");
+    const eraseText =
+      pattern.eliminations.length === 1
+        ? "the other highlighted cell"
+        : "the other highlighted cells";
     const linePart =
       pattern.orientation === "row"
         ? `rows ${pattern.rows.map((row) => row + 1).join(" and ")} share columns ${pattern.cols.map((col) => col + 1).join(" and ")}`
@@ -333,9 +354,157 @@
 
     return {
       line1: "An X-Wing locks one digit into the same two rows and columns, forming four corners.",
-      line2: `Example: ${linePart} for ${pattern.digit}, so remove ${pattern.digit} from ${removeTargets}.`,
+      line2: `Example: ${linePart} for ${pattern.digit}, so remove ${pattern.digit} from ${eraseText}.`,
       fallback: "Example: If two rows place a digit in the same two columns, erase that digit from the rest of those columns."
     };
+  }
+
+  function buildHiddenSingleExplanation(pattern) {
+    return {
+      line1: "A hidden single means one digit has only one possible cell in a row, column, or box.",
+      line2: `Example: In ${pattern.unit.label}, ${pattern.digit} can go only in the highlighted cell. Pink cells show related open spaces where ${pattern.digit} is ruled out.`,
+      fallback: "Example: Pick one row, column, or box and scan a digit. If that digit fits in only one open cell, place it there."
+    };
+  }
+
+  function findHiddenSingle(board) {
+    const allCandidates = getAllCandidates(board);
+    let fallback = null;
+
+    for (let unitIndex = 0; unitIndex < UNITS.length; unitIndex += 1) {
+      const unit = UNITS[unitIndex];
+
+      for (const digit of DIGITS) {
+        const cells = unit
+          .filter((index) => board[index] === EMPTY && allCandidates[index].includes(digit))
+          .map((index) => ({
+            index,
+            candidates: allCandidates[index].slice()
+          }));
+
+        if (cells.length !== 1) {
+          continue;
+        }
+
+        const targetIndex = cells[0].index;
+        const relatedIndexes = new Set();
+        CELL_UNITS[targetIndex].forEach((relatedUnitIndex) => {
+          UNITS[relatedUnitIndex].forEach((index) => relatedIndexes.add(index));
+        });
+        relatedIndexes.delete(targetIndex);
+
+        const pattern = {
+          type: "hidden-single",
+          title: "Hidden single",
+          digit,
+          unit: {
+            index: unitIndex,
+            label: unitLabel(unitIndex),
+            kind: unitKind(unitIndex),
+            cells: unit.slice()
+          },
+          cells,
+          blockedCells: Array.from(relatedIndexes).filter(
+            (index) => board[index] === EMPTY && !allCandidates[index].includes(digit)
+          ),
+          eliminations: []
+        };
+
+        const result = {
+          ...pattern,
+          explanation: buildHiddenSingleExplanation(pattern)
+        };
+
+        if (cells[0].candidates.length > 1) {
+          return result;
+        }
+
+        fallback = fallback || result;
+      }
+    }
+
+    return fallback;
+  }
+
+  function buildPointingExplanation(pattern) {
+    const eraseText =
+      pattern.eliminations.length === 1
+        ? "the other highlighted cell"
+        : "the other highlighted cells";
+
+    return {
+      line1: "A pointing pair or triple happens when a digit's candidates inside one box all sit in the same row or column.",
+      line2: `Example: In ${pattern.unit.label}, every possible ${pattern.digit} is in ${pattern.lineLabel}. That keeps ${pattern.digit} inside the box there, so erase it from ${eraseText} in ${pattern.lineLabel} outside that box.`,
+      fallback: `Example: If all possible spots for a digit in a box point along one row or column, erase that digit from the rest of that row or column.`
+    };
+  }
+
+  function findPointingSet(board) {
+    const allCandidates = getAllCandidates(board);
+
+    for (let boxIndex = 18; boxIndex < 27; boxIndex += 1) {
+      const box = UNITS[boxIndex];
+
+      for (const digit of DIGITS) {
+        const cells = box
+          .filter((index) => board[index] === EMPTY && allCandidates[index].includes(digit))
+          .map((index) => ({
+            index,
+            candidates: [digit]
+          }));
+
+        if (cells.length < 2 || cells.length > 3) {
+          continue;
+        }
+
+        const rows = uniqueSorted(cells.map((cell) => rowOf(cell.index)));
+        const cols = uniqueSorted(cells.map((cell) => colOf(cell.index)));
+        const isRowPointing = rows.length === 1;
+        const isColPointing = cols.length === 1;
+
+        if (!isRowPointing && !isColPointing) {
+          continue;
+        }
+
+        const lineKind = isRowPointing ? "row" : "column";
+        const lineIndex = isRowPointing ? rows[0] : cols[0];
+        const lineUnit = UNITS[isRowPointing ? lineIndex : 9 + lineIndex];
+        const boxCells = new Set(box);
+        const eliminations = lineUnit
+          .filter((index) => !boxCells.has(index) && board[index] === EMPTY && allCandidates[index].includes(digit))
+          .map((index) => ({
+            index,
+            digits: [digit]
+          }));
+
+        if (eliminations.length === 0) {
+          continue;
+        }
+
+        const pattern = {
+          type: "pointing",
+          title: cells.length === 2 ? "Pointing pair" : "Pointing triple",
+          digit,
+          unit: {
+            index: boxIndex,
+            label: unitLabel(boxIndex),
+            kind: "box",
+            cells: box.slice()
+          },
+          lineKind,
+          lineLabel: `${lineKind} ${lineIndex + 1}`,
+          cells,
+          eliminations
+        };
+
+        return {
+          ...pattern,
+          explanation: buildPointingExplanation(pattern)
+        };
+      }
+    }
+
+    return null;
   }
 
   function findXWing(board) {
@@ -471,6 +640,14 @@
       return findNakedSet(board, 3);
     }
 
+    if (technique === "hidden-single") {
+      return findHiddenSingle(board);
+    }
+
+    if (technique === "pointing") {
+      return findPointingSet(board);
+    }
+
     if (technique === "xwing") {
       return findXWing(board);
     }
@@ -496,6 +673,8 @@
     isConflict,
     evaluateBoard,
     findNakedSet,
+    findHiddenSingle,
+    findPointingSet,
     findXWing,
     getHintPattern
   };

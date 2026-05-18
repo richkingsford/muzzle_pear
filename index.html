@@ -8,13 +8,156 @@
     <link rel="stylesheet" href="src/styles.css">
   </head>
   <body>
-    <div class="app-shell">
+    <div id="homeShell" class="home-shell">
+      <header class="home-hero">
+        <div>
+          <p class="eyebrow">Puzzle arcade</p>
+          <h1>Choose Your Brain Spark</h1>
+          <p class="home-copy">A cabinet of tiny logic doors, each one waiting to make your coffee feel unnecessary.</p>
+        </div>
+      </header>
+
+      <main class="game-gallery" aria-label="Game launcher">
+        <button class="game-card sudoku-card featured" type="button" data-game="sudoku" aria-label="Play Sudoku">
+          <span class="game-art sudoku-art" aria-hidden="true">
+            <span>5</span><span></span><span>7</span>
+            <span></span><span>9</span><span></span>
+            <span>1</span><span></span><span>8</span>
+          </span>
+          <span class="game-text">
+            <span class="game-title">Sudoku</span>
+            <span class="game-tag">Step into the number glow</span>
+          </span>
+        </button>
+
+        <button class="game-card chess-card" type="button" data-game="chess">
+          <span class="game-art chess-art" aria-hidden="true">
+            <span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span>
+            <svg class="chess-piece pawn" viewBox="0 0 64 64" aria-hidden="true">
+              <path d="M32 10a9 9 0 0 1 5 16.5c1.8 2.2 3 5.4 3.2 9.5H46v8H18v-8h5.8c.2-4.1 1.4-7.3 3.2-9.5A9 9 0 0 1 32 10zM15 49h34l4 7H11l4-7z"></path>
+            </svg>
+            <svg class="chess-piece bishop" viewBox="0 0 64 64" aria-hidden="true">
+              <path d="M32 7c8 7 13 15 13 24 0 5.6-2.5 9.8-6.6 12H46v7H18v-7h7.6C21.5 40.8 19 36.6 19 31c0-9 5-17 13-24zm0 9c-4.7 5-7 10-7 15 0 5.2 2.7 8.7 7 8.7s7-3.5 7-8.7c0-5-2.3-10-7-15zm-5 12 10-6 2 4-10 6-2-4zM15 54h34l3 6H12l3-6z"></path>
+            </svg>
+            <svg class="chess-piece queen" viewBox="0 0 64 64" aria-hidden="true">
+              <path d="M14 18a5 5 0 1 1 8 4l6 12 4-16a5 5 0 1 1 0-6 5 5 0 1 1 4 6l4 16 6-12a5 5 0 1 1 4 2l-5 22H19l-5-22a5 5 0 0 1 0-6zm6 33h24v7H20v-7z"></path>
+            </svg>
+          </span>
+          <span class="game-title">Chess</span>
+        </button>
+
+        <button class="game-card logic-card" type="button" data-game="grid-logic">
+          <span class="game-art logic-art" aria-hidden="true">
+            <span class="logic-empty"></span>
+            <span class="logic-icon pet cat"></span>
+            <span class="logic-icon pet dog"></span>
+            <span class="logic-icon pet bird"></span>
+            <span class="logic-icon person one"></span>
+            <span class="logic-cell yes"></span>
+            <span class="logic-cell no reveal-mark"></span>
+            <span class="logic-cell"></span>
+            <span class="logic-icon person two"></span>
+            <span class="logic-cell"></span>
+            <span class="logic-cell yes reveal-mark"></span>
+            <span class="logic-cell no"></span>
+            <span class="logic-icon person three"></span>
+            <span class="logic-cell no reveal-mark"></span>
+            <span class="logic-cell"></span>
+            <span class="logic-cell yes"></span>
+          </span>
+          <span class="game-title">Grid Logic Game</span>
+        </button>
+
+        <button class="game-card spider-card" type="button" data-game="spider-solitaire">
+          <span class="game-art spider-art" aria-hidden="true">
+            <span class="web-spider"><span></span></span>
+            <svg class="playing-card ace-card" viewBox="0 0 90 126" aria-hidden="true">
+              <rect x="5" y="5" width="80" height="116" rx="9"></rect>
+              <text class="rank top" x="15" y="24">A</text>
+              <text class="suit top" x="15" y="39">♠</text>
+              <text class="suit center" x="45" y="74">♠</text>
+              <text class="rank bottom" x="75" y="102">A</text>
+              <text class="suit bottom" x="75" y="117">♠</text>
+            </svg>
+            <svg class="playing-card king-card" viewBox="0 0 90 126" aria-hidden="true">
+              <rect x="5" y="5" width="80" height="116" rx="9"></rect>
+              <text class="rank top" x="15" y="24">K</text>
+              <text class="suit top" x="15" y="39">♥</text>
+              <path class="face crown" d="M26 55h38l-4 25H30l-4-25zm4-8 9 10 6-14 6 14 9-10 3 8H27l3-8z"></path>
+              <text class="rank bottom" x="75" y="102">K</text>
+              <text class="suit bottom" x="75" y="117">♥</text>
+            </svg>
+            <svg class="playing-card queen-card" viewBox="0 0 90 126" aria-hidden="true">
+              <rect x="5" y="5" width="80" height="116" rx="9"></rect>
+              <text class="rank top" x="15" y="24">Q</text>
+              <text class="suit top" x="15" y="39">♦</text>
+              <path class="face queen" d="M45 42c12 8 18 18 14 31-3 9-25 9-28 0-4-13 2-23 14-31zm-13 43h26v9H32v-9z"></path>
+              <text class="rank bottom" x="75" y="102">Q</text>
+              <text class="suit bottom" x="75" y="117">♦</text>
+            </svg>
+          </span>
+          <span class="game-title">Spider Solitaire</span>
+        </button>
+
+        <button class="game-card mines-card" type="button" data-game="minesweeper">
+          <span class="game-art mines-art" aria-hidden="true">
+            <span></span><span>1</span><span></span>
+            <span>2</span><span></span><span></span>
+            <span></span><span>3</span><span></span>
+          </span>
+          <span class="game-title">Minesweeper</span>
+        </button>
+
+        <button class="game-card master-card" type="button" data-game="mastermind">
+          <span class="game-art master-art" aria-hidden="true">
+            <span class="code-lid">?</span>
+            <span class="guess-row row-one">
+              <span class="peg red"></span><span class="peg blue"></span><span class="peg yellow"></span><span class="peg teal"></span>
+              <span class="feedback"><span></span><span></span><span></span><span></span></span>
+            </span>
+            <span class="guess-row row-two">
+              <span class="peg teal"></span><span class="peg red"></span><span class="peg blue"></span><span class="peg yellow"></span>
+              <span class="feedback"><span></span><span></span><span></span><span></span></span>
+            </span>
+            <span class="guess-row row-three">
+              <span class="peg red"></span><span class="peg yellow"></span><span class="peg teal"></span><span class="peg blue"></span>
+              <span class="feedback"><span></span><span></span><span></span><span></span></span>
+            </span>
+          </span>
+          <span class="game-title">Mastermind</span>
+        </button>
+
+        <button class="game-card word-card" type="button" data-game="wordle-like">
+          <span class="game-art word-art" aria-hidden="true">
+            <span class="word-row guess-one"><span>C</span><span>R</span><span>A</span><span>N</span><span>E</span></span>
+            <span class="word-row guess-two"><span>S</span><span>P</span><span>A</span><span>R</span><span>K</span></span>
+            <span class="word-row guess-three"><span>G</span><span>L</span><span>Y</span><span>P</span><span>H</span></span>
+          </span>
+          <span class="game-title">Word Vault</span>
+        </button>
+
+        <button class="game-card math-card" type="button" data-game="arithmettle">
+          <span class="game-art math-art" aria-hidden="true">
+            <span class="equation-row trial"><span>8</span><span>+</span><span>4</span><span>=</span><span>12</span></span>
+            <span class="equation-row clue"><span>3</span><span>×</span><span>5</span><span>=</span><span>15</span></span>
+            <span class="equation-row solve"><span>9</span><span>-</span><span>2</span><span>=</span><span>7</span></span>
+          </span>
+          <span class="game-title">Arithmettle</span>
+        </button>
+      </main>
+    </div>
+
+    <div id="appShell" class="app-shell" hidden>
       <header class="topbar">
         <div>
           <p class="eyebrow">Sudoku trainer</p>
-          <h1>Chromatic Sudoku</h1>
+          <h1>Sudoku</h1>
         </div>
         <div class="top-actions" aria-label="Game toggles">
+          <button id="homeButton" class="button ghost" type="button">Home</button>
           <label class="switch">
             <input id="autoNotes" type="checkbox" checked>
             <span>Auto note</span>
@@ -67,6 +210,8 @@
             <div class="hint-buttons" role="list">
               <button class="hint-button" type="button" data-technique="pair">Naked pair</button>
               <button class="hint-button" type="button" data-technique="trio">Naked trio</button>
+              <button class="hint-button" type="button" data-technique="hidden-single">Hidden single</button>
+              <button class="hint-button" type="button" data-technique="pointing">Pointing pair/triple</button>
               <button class="hint-button" type="button" data-technique="xwing">X-Wing</button>
             </div>
           </section>

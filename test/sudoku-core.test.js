@@ -51,6 +51,39 @@ test("starting puzzle contains a live naked trio teaching pattern", () => {
   assert.deepEqual(trio.eliminations.map((removal) => SudokuCore.formatCell(removal.index)), ["R1C4", "R3C4", "R3C5"]);
 });
 
+test("starting puzzle contains a live hidden single teaching pattern", () => {
+  const single = SudokuCore.findHiddenSingle(board);
+
+  assert.equal(single.title, "Hidden single");
+  assert.equal(single.unit.label, "row 2");
+  assert.equal(single.digit, 5);
+  assert.deepEqual(single.cells.map((cell) => SudokuCore.formatCell(cell.index)), ["R2C6"]);
+  assert.deepEqual(single.cells[0].candidates, [2, 5, 8]);
+  assert.deepEqual(single.blockedCells.map((index) => SudokuCore.formatCell(index)), [
+    "R2C1",
+    "R2C2",
+    "R2C3",
+    "R2C8",
+    "R2C9",
+    "R1C6",
+    "R7C6",
+    "R1C4",
+    "R3C4"
+  ]);
+  assert.deepEqual(single.eliminations, []);
+});
+
+test("starting puzzle contains a live pointing pair teaching pattern", () => {
+  const pointing = SudokuCore.findPointingSet(board);
+
+  assert.equal(pointing.title, "Pointing pair");
+  assert.equal(pointing.unit.label, "box 4");
+  assert.equal(pointing.lineLabel, "row 4");
+  assert.equal(pointing.digit, 5);
+  assert.deepEqual(pointing.cells.map((cell) => SudokuCore.formatCell(cell.index)), ["R4C2", "R4C3"]);
+  assert.deepEqual(pointing.eliminations.map((removal) => SudokuCore.formatCell(removal.index)), ["R4C5"]);
+});
+
 test("starting puzzle contains a live X-Wing teaching pattern", () => {
   const xwing = SudokuCore.findXWing(board);
 

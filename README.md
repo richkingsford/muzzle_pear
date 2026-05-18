@@ -4,7 +4,7 @@ A fresh, dependency-light Sudoku app with:
 
 - Smart row, column, box, matching-number, and conflict highlights.
 - Optional auto notes that fill empty cells with possible candidates.
-- Three teaching overlays: naked pairs, naked trios, and X-Wing.
+- Five teaching overlays: hidden singles, naked pairs, naked trios, pointing pairs/triples, and X-Wing.
 - Light and dark themes.
 
 ## Run

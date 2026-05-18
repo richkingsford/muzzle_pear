@@ -20,6 +20,10 @@
   let solution = parseBoard(puzzle.solution);
 
   const boardEl = document.querySelector("#board");
+  const homeShellEl = document.querySelector("#homeShell");
+  const appShellEl = document.querySelector("#appShell");
+  const homeButtonEl = document.querySelector("#homeButton");
+  const gameButtons = Array.from(document.querySelectorAll(".game-card"));
   const numberPadEl = document.querySelector(".number-pad");
   const levelSelectEl = document.querySelector("#levelSelect");
   const autoNotesEl = document.querySelector("#autoNotes");
@@ -38,6 +42,16 @@
   const difficultyPillEl = document.querySelector("#difficultyPill");
   const hintButtons = Array.from(document.querySelectorAll(".hint-button"));
 
+  const gameMessages = {
+    chess: "Chess is still polishing its crown.",
+    "grid-logic": "Grid Logic Game is drawing suspicious little charts.",
+    "spider-solitaire": "Spider Solitaire is shuffling dramatically.",
+    minesweeper: "Minesweeper is planting mysteries for later.",
+    mastermind: "Mastermind is mixing a secret code.",
+    "wordle-like": "Glyph Guess is choosing deliciously odd letters.",
+    arithmettle: "Arithmettle is sharpening its plus signs."
+  };
+
   const state = {
     board: givens.slice(),
     selected: givens.findIndex((value) => value === EMPTY),
@@ -55,12 +69,22 @@
     pair: {
       title: "Naked pair",
       line1: "A naked pair is two cells in one row, column, or box that share the exact same two candidates.",
-      line2: "Example: If R8C1 and R8C7 can only be 2 or 6, those digits can leave the other cells in row 8."
+      line2: "Example: If two highlighted cells in a row can only be 2 or 6, those two digits belong in those cells and can be erased from the rest of the row."
     },
     trio: {
       title: "Naked trio",
-      line1: "A naked trio is three cells in one unit whose combined candidates are exactly three digits.",
-      line2: "Example: If three cells in a box only use 2, 5, and 8, those digits can be removed from the rest of that box."
+      line1: "A naked trio happens when three open cells in the same row, column, or box are limited to the same three digits between them.",
+      line2: "Example: If three highlighted cells in a box can only use 2, 5, and 8 in total, those digits are reserved for those cells. One cell may show only two of the digits."
+    },
+    "hidden-single": {
+      title: "Hidden single",
+      line1: "A hidden single means one digit has only one possible cell in a row, column, or box.",
+      line2: "Example: If 7 can fit in only one cell in a row, that cell must be 7 even if it has other notes."
+    },
+    pointing: {
+      title: "Pointing pair/triple",
+      line1: "A pointing pair or triple happens when a digit's candidates inside one box all sit in the same row or column.",
+      line2: "Example: If every possible 4 in a box is in the same row, erase 4 from the rest of that row outside the box."
     },
     xwing: {
       title: "X-Wing",
@@ -226,6 +250,7 @@
       anchors: new Set(),
       removals: new Set(),
       corners: new Set(),
+      blocked: new Set(),
       digitsByCell: new Map()
     };
 
@@ -240,7 +265,7 @@
     if (pattern.cells) {
       pattern.cells.forEach((cell) => {
         sets.anchors.add(cell.index);
-        sets.digitsByCell.set(cell.index, pattern.digits.slice());
+        sets.digitsByCell.set(cell.index, pattern.type === "hidden-single" ? [pattern.digit] : cell.candidates.slice());
       });
     }
 
@@ -263,6 +288,10 @@
       });
     }
 
+    if (pattern.blockedCells) {
+      pattern.blockedCells.forEach((index) => sets.blocked.add(index));
+    }
+
     return sets;
   }
 
@@ -271,7 +300,13 @@
       return [];
     }
 
-    if (state.autoNotes || hintSets.anchors.has(index) || hintSets.removals.has(index) || hintSets.corners.has(index)) {
+    if (
+      state.autoNotes ||
+      hintSets.anchors.has(index) ||
+      hintSets.removals.has(index) ||
+      hintSets.corners.has(index) ||
+      hintSets.blocked.has(index)
+    ) {
       return getCandidates(state.board, index);
     }
 
@@ -308,6 +343,7 @@
       cell.classList.toggle("hint-anchor", hintSets.anchors.has(index));
       cell.classList.toggle("hint-removal", hintSets.removals.has(index));
       cell.classList.toggle("hint-corner", hintSets.corners.has(index));
+      cell.classList.toggle("hint-blocked", hintSets.blocked.has(index));
       cell.setAttribute("aria-selected", String(isSelected));
       cell.setAttribute("aria-readonly", String(isGiven(index)));
 
@@ -348,10 +384,21 @@
       return;
     }
 
-    const removalCount = pattern.eliminations.length;
+    const removalCount = pattern.eliminations ? pattern.eliminations.length : 0;
     const targetWord = removalCount === 1 ? "candidate" : "candidates";
     const patternSwatch = pattern.type === "xwing" ? "corner" : "anchor";
-    const patternLabel = pattern.type === "xwing" ? "X-Wing corners" : "pattern cells";
+    const patternLabels = {
+      "hidden-single": `place ${pattern.digit} here`,
+      pointing: "pointing cells",
+      xwing: "X-Wing corners"
+    };
+    const patternLabel = patternLabels[pattern.type] || "pattern cells";
+    const removalLegend =
+      removalCount > 0 ? `<span><b class="swatch removal"></b>${targetWord} to erase</span>` : "";
+    const blockedLegend =
+      pattern.type === "hidden-single" && pattern.blockedCells && pattern.blockedCells.length > 0
+        ? `<span><b class="swatch blocked"></b>${pattern.digit} ruled out</span>`
+        : "";
 
     hintPanelEl.innerHTML = `
       <h2>${pattern.title}</h2>
@@ -359,7 +406,8 @@
       <p>${pattern.explanation.line2}</p>
       <div class="legend" aria-label="Overlay legend">
         <span><b class="swatch ${patternSwatch}"></b>${patternLabel}</span>
-        <span><b class="swatch removal"></b>${targetWord} to erase</span>
+        ${blockedLegend}
+        ${removalLegend}
       </div>
     `;
   }
@@ -442,7 +490,37 @@
     chemistryLinkEl.setAttribute("aria-expanded", String(shouldOpen));
   }
 
+  function showHome() {
+    homeShellEl.hidden = false;
+    appShellEl.hidden = true;
+    document.body.classList.remove("playing");
+  }
+
+  function showSudoku() {
+    homeShellEl.hidden = true;
+    appShellEl.hidden = false;
+    document.body.classList.add("playing");
+  }
+
   function bindEvents() {
+    homeButtonEl.addEventListener("click", showHome);
+
+    gameButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        if (button.dataset.game === "sudoku") {
+          showSudoku();
+          return;
+        }
+
+        const message = button.querySelector(".game-tag") || document.createElement("span");
+        message.className = "game-tag";
+        message.textContent = gameMessages[button.dataset.game] || "Coming soon.";
+        if (!button.querySelector(".game-tag")) {
+          button.append(message);
+        }
+      });
+    });
+
     levelSelectEl.addEventListener("change", () => {
       const nextPuzzle = PUZZLES[Number(levelSelectEl.value)];
       loadPuzzle(Number(levelSelectEl.value), `Loaded Level ${nextPuzzle.level}: ${nextPuzzle.name}.`);
@@ -492,7 +570,9 @@
       button.addEventListener("click", () => {
         const technique = button.dataset.technique;
         state.activeTechnique = state.activeTechnique === technique ? null : technique;
-        state.message = state.activeTechnique ? `${button.textContent} overlay on.` : "Overlay cleared.";
+        if (!state.activeTechnique) {
+          state.message = "Overlay cleared.";
+        }
         render();
       });
     });

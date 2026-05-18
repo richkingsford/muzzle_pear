@@ -166,6 +166,46 @@ async function main() {
       return result.result.value;
     }
 
+    const home = await evalPage(`(() => {
+      const sudoku = document.querySelector('[data-game="sudoku"]');
+      const before = {
+        homeHidden: document.querySelector('#homeShell').hidden,
+        appHidden: document.querySelector('#appShell').hidden,
+        title: document.querySelector('.home-hero h1').textContent,
+        gameCount: document.querySelectorAll('.game-card').length,
+        chessPieces: document.querySelectorAll('.chess-piece').length,
+        spiderCards: document.querySelectorAll('.playing-card').length,
+        webSpider: document.querySelectorAll('.web-spider').length,
+        mastermindRows: document.querySelectorAll('.master-art .guess-row').length,
+        mastermindFeedback: document.querySelectorAll('.master-art .feedback span').length,
+        logicRevealMarks: document.querySelectorAll('.logic-cell.reveal-mark').length,
+        wordRows: document.querySelectorAll('.word-art .word-row').length,
+        wordTitle: document.querySelector('[data-game="wordle-like"] .game-title').textContent,
+        mathRows: document.querySelectorAll('.math-art .equation-row').length,
+        logicPeople: document.querySelectorAll('.logic-icon.person').length,
+        logicPets: document.querySelectorAll('.logic-icon.pet').length,
+        logicEmpty: document.querySelectorAll('.logic-empty').length,
+        sudokuTitle: sudoku.querySelector('.game-title').textContent,
+        mathTitle: document.querySelector('[data-game="arithmettle"] .game-title').textContent
+      };
+      sudoku.click();
+      return {
+        ...before,
+        afterHomeHidden: document.querySelector('#homeShell').hidden,
+        afterAppHidden: document.querySelector('#appShell').hidden
+      };
+    })()`);
+    assert(home.homeHidden === false && home.appHidden === true, "Home screen should show before entering Sudoku", home);
+    assert(home.title === "Choose Your Brain Spark" && home.gameCount === 8, "Home screen should show one launcher per game", home);
+    assert(home.chessPieces === 3, "Chess launcher should show three sharper SVG pieces", home);
+    assert(home.logicPeople === 3 && home.logicPets === 3 && home.logicEmpty === 1, "Grid Logic launcher should keep one invisible corner plus people and pets", home);
+    assert(home.logicRevealMarks === 3, "Grid Logic launcher should hide some marks until hover", home);
+    assert(home.spiderCards === 3 && home.webSpider === 1, "Spider launcher should show three SVG playing cards and one dangling spider", home);
+    assert(home.mastermindRows === 3 && home.mastermindFeedback === 12, "Mastermind launcher should simulate guesses and feedback pegs", home);
+    assert(home.wordRows === 3 && home.wordTitle === "Word Vault" && home.mathRows === 3, "Word Vault and Arithmettle should use richer multi-row boards", home);
+    assert(home.sudokuTitle === "Sudoku" && home.mathTitle === "Arithmettle", "Home game titles should be present", home);
+    assert(home.afterHomeHidden === true && home.afterAppHidden === false, "Sudoku launcher should enter the app", home);
+
     const initial = await evalPage(`(() => {
       const topCells = Array.from(document.querySelectorAll('.cell')).slice(0, 27).map((cell) => {
         const rect = cell.getBoundingClientRect();
@@ -258,12 +298,15 @@ async function main() {
       select.value = '6';
       select.dispatchEvent(new Event('change', { bubbles: true }));
       const out = {};
-      for (const technique of ['pair', 'trio', 'xwing']) {
+      for (const technique of ['pair', 'trio', 'hidden-single', 'pointing', 'xwing']) {
         document.querySelector('[data-technique="' + technique + '"]').click();
         out[technique] = {
           anchors: document.querySelectorAll('.hint-anchor').length,
           removals: document.querySelectorAll('.hint-removal').length,
           corners: document.querySelectorAll('.hint-corner').length,
+          blocked: document.querySelectorAll('.hint-blocked').length,
+          anchorBadges: document.querySelectorAll('.hint-anchor .candidate-hit, .hint-corner .candidate-hit').length,
+          removalBadges: document.querySelectorAll('.hint-removal .candidate-hit').length,
           panel: document.querySelector('#hintPanel').textContent.replace(/\\s+/g, ' ').trim()
         };
       }
@@ -271,16 +314,58 @@ async function main() {
     })()`);
     assert(overlays.pair.anchors === 2 && overlays.pair.removals === 1, "Pair overlay should still work on level 7", overlays.pair);
     assert(overlays.trio.anchors === 3 && overlays.trio.removals === 3, "Trio overlay should still work on level 7", overlays.trio);
+    assert(overlays["hidden-single"].anchors === 1 && overlays["hidden-single"].removals === 0, "Hidden single overlay should show one target cell", overlays["hidden-single"]);
+    assert(overlays["hidden-single"].blocked === 9, "Hidden single overlay should show related cells where the digit is ruled out", overlays["hidden-single"]);
+    assert(overlays.pointing.anchors === 2 && overlays.pointing.removals === 1, "Pointing overlay should show pointing cells and removals", overlays.pointing);
     assert(overlays.xwing.corners === 4 && overlays.xwing.removals === 1, "X-Wing overlay should still work on level 7", overlays.xwing);
+    assert(overlays.trio.anchorBadges === 8 && overlays.trio.removalBadges === 4, "Trio pattern cells should highlight only their visible candidates", overlays.trio);
+    assert(
+      overlays["hidden-single"].anchorBadges === 1 &&
+        overlays["hidden-single"].panel.includes("only one possible cell") &&
+        overlays["hidden-single"].panel.includes("5 ruled out"),
+      "Hidden single panel should explain the forced digit and ruled-out cells",
+      overlays["hidden-single"]
+    );
+    assert(overlays.pointing.panel.includes("same row or column") && overlays.pointing.panel.includes("outside that box"), "Pointing panel should explain box-to-line elimination", overlays.pointing);
+    assert(!/R\d+C\d+/.test(Object.values(overlays).map((overlay) => overlay.panel).join(" ")), "Hint panels should avoid compact cell references", overlays);
+    assert(overlays.trio.panel.includes("three open cells") && overlays.trio.panel.includes("may show only two"), "Trio explanation should clarify subset candidates", overlays.trio);
+
+    const darkHintBadge = await evalPage(`(() => {
+      document.querySelector('#themeToggle').click();
+      document.querySelector('[data-technique="trio"]').click();
+      const badge = document.querySelector('.candidate-hit');
+      const style = getComputedStyle(badge);
+      return {
+        color: style.color,
+        background: style.backgroundColor,
+        text: badge.textContent
+      };
+    })()`);
+    assert(darkHintBadge.color === "rgb(17, 24, 39)", "Dark-mode highlighted candidates should use dark text", darkHintBadge);
+    assert(darkHintBadge.background === "rgb(255, 209, 102)", "Dark-mode highlighted candidates should stay yellow", darkHintBadge);
 
     await cdp.send("Emulation.setDeviceMetricsOverride", { width: 390, height: 844, deviceScaleFactor: 2, mobile: true }, sessionId);
-    const mobile = await evalPage(`(() => ({
-      scrollWidth: document.documentElement.scrollWidth,
-      windowWidth: window.innerWidth,
-      visibleCells: Array.from(document.querySelectorAll('.cell')).filter((cell) => cell.getBoundingClientRect().width > 0).length,
-      board: Math.round(document.querySelector('.sudoku-board').getBoundingClientRect().width)
-    }))()`);
-    assert(mobile.scrollWidth <= mobile.windowWidth + 1 && mobile.visibleCells === 81 && mobile.board > 300, "Mobile layout should fit and show all cells", mobile);
+    const mobile = await evalPage(`(() => {
+      document.querySelector('#homeButton').click();
+      const home = {
+        scrollWidth: document.documentElement.scrollWidth,
+        windowWidth: window.innerWidth,
+        gameCards: document.querySelectorAll('.game-card').length,
+        firstCardWidth: Math.round(document.querySelector('.game-card').getBoundingClientRect().width)
+      };
+      document.querySelector('[data-game="sudoku"]').click();
+      return {
+        home,
+        app: {
+          scrollWidth: document.documentElement.scrollWidth,
+          windowWidth: window.innerWidth,
+          visibleCells: Array.from(document.querySelectorAll('.cell')).filter((cell) => cell.getBoundingClientRect().width > 0).length,
+          board: Math.round(document.querySelector('.sudoku-board').getBoundingClientRect().width)
+        }
+      };
+    })()`);
+    assert(mobile.home.scrollWidth <= mobile.home.windowWidth + 1 && mobile.home.gameCards === 8 && mobile.home.firstCardWidth > 300, "Mobile home layout should fit and stack game cards", mobile.home);
+    assert(mobile.app.scrollWidth <= mobile.app.windowWidth + 1 && mobile.app.visibleCells === 81 && mobile.app.board > 300, "Mobile app layout should fit and show all cells", mobile.app);
 
     await wait(250);
     assert(browserIssues.length === 0, "Browser should have no console warnings or errors", browserIssues);
@@ -291,7 +376,7 @@ async function main() {
       process.exitCode = 1;
     } else {
       console.log("BROWSER_CHECK_PASSED");
-      console.log(JSON.stringify({ initial, manual, levelsAndChem, overlays, mobile, browserIssues }, null, 2));
+      console.log(JSON.stringify({ home, initial, manual, levelsAndChem, overlays, mobile, browserIssues }, null, 2));
     }
 
     await cdp.send("Browser.close");
