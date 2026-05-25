@@ -47,8 +47,11 @@ Human-style e2e QA:
 
 ## Task 1: Grid Logic Game
 
+Hint rules for this game live in `docs/grid-logic-hint-rules.md`. Treat that file as the source of truth for Grid Logic clue labels, Auto Mark behavior, hint ordering, hint types, and overlay copy.
+
 ```text
 Use docs/sudoku-quality-standards.md as the quality template.
+Use docs/grid-logic-hint-rules.md as the Grid Logic hint contract.
 
 Build and polish the Grid Logic game.
 
@@ -172,26 +175,6 @@ Scope:
 Do not break the existing Sudoku tests or hint overlays.
 ```
 
-## Task 7: Arithmettle
-
-```text
-Use docs/sudoku-quality-standards.md as the quality template.
-
-Build and polish Arithmettle.
-
-Scope:
-- Implement a playable arithmetic Wordle-like game named Arithmettle.
-- Define valid equation rules clearly, including allowed operators, equation length, equals sign requirements, and division behavior.
-- Include keyboard input, on-screen keypad, row submission, expression validation, feedback coloring, win/loss states, reset/new puzzle, and mobile layout.
-- Make it visually distinct from Word Vault while still belonging to the same arcade.
-- Add docs/arithmettle-quality-standards.md using the Sudoku standards doc as the template.
-- Add unit tests for expression validation, scoring, repeated symbols, and arithmetic correctness.
-- Add browser tests for entering equations, invalid equations, valid wrong guesses, win/loss/reset, and mobile layout.
-- Run human-style e2e QA: enter equations from keyboard and on-screen keypad, try malformed equations, try mathematically false equations, verify feedback, force a win/loss, reset, return home, and test mobile layout.
-- Run the tests and open a PR.
-
-Do not break the existing Sudoku tests or hint overlays.
-```
 
 ## Optional Task: Shared Arcade Shell
 

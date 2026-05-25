@@ -3,13 +3,14 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Sudoku Hint Trainer</title>
+    <title>Brain Spark Arcade</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="src/styles.css">
   </head>
   <body>
     <div id="homeShell" class="home-shell">
       <header class="home-hero">
+        <button id="homeThemeToggle" class="button ghost home-theme-toggle" type="button" aria-label="Toggle dark mode">Dark</button>
         <div>
           <p class="eyebrow">Puzzle arcade</p>
           <h1>Choose Your Brain Spark</h1>
@@ -18,38 +19,7 @@
       </header>
 
       <main class="game-gallery" aria-label="Game launcher">
-        <button class="game-card sudoku-card featured" type="button" data-game="sudoku" aria-label="Play Sudoku">
-          <span class="game-art sudoku-art" aria-hidden="true">
-            <span>5</span><span></span><span>7</span>
-            <span></span><span>9</span><span></span>
-            <span>1</span><span></span><span>8</span>
-          </span>
-          <span class="game-text">
-            <span class="game-title">Sudoku</span>
-            <span class="game-tag">Step into the number glow</span>
-          </span>
-        </button>
-
-        <button class="game-card chess-card" type="button" data-game="chess">
-          <span class="game-art chess-art" aria-hidden="true">
-            <span></span><span></span><span></span><span></span>
-            <span></span><span></span><span></span><span></span>
-            <span></span><span></span><span></span><span></span>
-            <span></span><span></span><span></span><span></span>
-            <svg class="chess-piece pawn" viewBox="0 0 64 64" aria-hidden="true">
-              <path d="M32 10a9 9 0 0 1 5 16.5c1.8 2.2 3 5.4 3.2 9.5H46v8H18v-8h5.8c.2-4.1 1.4-7.3 3.2-9.5A9 9 0 0 1 32 10zM15 49h34l4 7H11l4-7z"></path>
-            </svg>
-            <svg class="chess-piece bishop" viewBox="0 0 64 64" aria-hidden="true">
-              <path d="M32 7c8 7 13 15 13 24 0 5.6-2.5 9.8-6.6 12H46v7H18v-7h7.6C21.5 40.8 19 36.6 19 31c0-9 5-17 13-24zm0 9c-4.7 5-7 10-7 15 0 5.2 2.7 8.7 7 8.7s7-3.5 7-8.7c0-5-2.3-10-7-15zm-5 12 10-6 2 4-10 6-2-4zM15 54h34l3 6H12l3-6z"></path>
-            </svg>
-            <svg class="chess-piece queen" viewBox="0 0 64 64" aria-hidden="true">
-              <path d="M14 18a5 5 0 1 1 8 4l6 12 4-16a5 5 0 1 1 0-6 5 5 0 1 1 4 6l4 16 6-12a5 5 0 1 1 4 2l-5 22H19l-5-22a5 5 0 0 1 0-6zm6 33h24v7H20v-7z"></path>
-            </svg>
-          </span>
-          <span class="game-title">Chess</span>
-        </button>
-
-        <button class="game-card logic-card" type="button" data-game="grid-logic">
+        <button class="game-card logic-card featured" type="button" data-game="grid-logic">
           <span class="game-art logic-art" aria-hidden="true">
             <span class="logic-empty"></span>
             <span class="logic-icon pet cat"></span>
@@ -68,7 +38,53 @@
             <span class="logic-cell"></span>
             <span class="logic-cell yes"></span>
           </span>
-          <span class="game-title">Grid Logic Game</span>
+          <span class="game-text">
+            <span class="game-title">Grid Logic Game</span>
+            <span class="game-tag">Read the clues, lock the matches</span>
+          </span>
+        </button>
+
+        <!--
+        <button class="game-card chess-card" type="button" data-game="chess">
+          <span class="game-art chess-art" aria-hidden="true">
+            <span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span>
+            <svg class="chess-piece pawn" viewBox="0 0 64 64" aria-hidden="true">
+              <path d="M32 10a9 9 0 0 1 5 16.5c1.8 2.2 3 5.4 3.2 9.5H46v8H18v-8h5.8c.2-4.1 1.4-7.3 3.2-9.5A9 9 0 0 1 32 10zM15 49h34l4 7H11l4-7z"></path>
+            </svg>
+            <svg class="chess-piece bishop" viewBox="0 0 64 64" aria-hidden="true">
+              <path d="M32 7c8 7 13 15 13 24 0 5.6-2.5 9.8-6.6 12H46v7H18v-7h7.6C21.5 40.8 19 36.6 19 31c0-9 5-17 13-24zm0 9c-4.7 5-7 10-7 15 0 5.2 2.7 8.7 7 8.7s7-3.5 7-8.7c0-5-2.3-10-7-15zm-5 12 10-6 2 4-10 6-2-4zM15 54h34l3 6H12l3-6z"></path>
+            </svg>
+            <svg class="chess-piece queen" viewBox="0 0 64 64" aria-hidden="true">
+              <path d="M14 18a5 5 0 1 1 8 4l6 12 4-16a5 5 0 1 1 0-6 5 5 0 1 1 4 6l4 16 6-12a5 5 0 1 1 4 2l-5 22H19l-5-22a5 5 0 0 1 0-6zm6 33h24v7H20v-7z"></path>
+            </svg>
+          </span>
+          <span class="game-title">Chess</span>
+        </button>
+        -->
+
+        <button class="game-card chem-search-card" type="button" data-game="chem-search" aria-label="Play Chemistry Word Search">
+          <span class="game-art chem-search-art" aria-hidden="true">
+            <span>H</span><span>O</span><span>N</span><span>C</span>
+            <span>A</span><span>T</span><span>O</span><span>M</span>
+            <span>I</span><span>O</span><span>N</span><span>S</span>
+            <span>pH</span><span>N</span><span>a</span><span>Cl</span>
+          </span>
+          <span class="game-title">Chemistry Word Search</span>
+        </button>
+
+        <button class="game-card sudoku-card" type="button" data-game="sudoku" aria-label="Play Sudoku">
+          <span class="game-art sudoku-art" aria-hidden="true">
+            <span>5</span><span></span><span>7</span>
+            <span></span><span>9</span><span></span>
+            <span>1</span><span></span><span>8</span>
+          </span>
+          <span class="game-text">
+            <span class="game-title">Sudoku</span>
+            <span class="game-tag">Step into the number glow</span>
+          </span>
         </button>
 
         <button class="game-card spider-card" type="button" data-game="spider-solitaire">
@@ -137,15 +153,6 @@
             <span class="word-row guess-three"><span>G</span><span>L</span><span>Y</span><span>P</span><span>H</span></span>
           </span>
           <span class="game-title">Word Vault</span>
-        </button>
-
-        <button class="game-card math-card" type="button" data-game="arithmettle">
-          <span class="game-art math-art" aria-hidden="true">
-            <span class="equation-row trial"><span>8</span><span>+</span><span>4</span><span>=</span><span>12</span></span>
-            <span class="equation-row clue"><span>3</span><span>×</span><span>5</span><span>=</span><span>15</span></span>
-            <span class="equation-row solve"><span>9</span><span>-</span><span>2</span><span>=</span><span>7</span></span>
-          </span>
-          <span class="game-title">Arithmettle</span>
         </button>
       </main>
     </div>
@@ -232,6 +239,290 @@
       </main>
     </div>
 
+    <div id="logicShell" class="app-shell logic-shell" hidden>
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Logic grid trainer</p>
+          <h1>Grid Logic Game</h1>
+        </div>
+        <div class="top-actions" aria-label="Logic game actions">
+          <button id="logicHomeButton" class="button ghost" type="button">Home</button>
+          <button id="logicThemeToggle" class="button ghost" type="button" aria-label="Toggle dark mode">Dark</button>
+        </div>
+      </header>
+
+      <main class="app-main logic-main">
+        <section class="board-section logic-board-section" aria-label="Logic grid board area">
+          <div id="logicBoard" class="logic-board" aria-label="Logic grid puzzle"></div>
+
+          <div class="action-row">
+            <button id="logicCheck" class="button primary" type="button">Check</button>
+            <button id="logicReset" class="button danger" type="button">Reset</button>
+          </div>
+        </section>
+
+        <aside class="side-panel" aria-label="Logic grid learning panel">
+          <div class="status-strip">
+            <span id="logicDifficultyPill" class="pill">Level 7: Expert</span>
+            <span id="logicProgressText">0 marks</span>
+          </div>
+
+          <section class="level-tools" aria-label="Logic puzzle levels">
+            <h2>Levels</h2>
+            <select id="logicLevelSelect" class="level-select" aria-label="Choose logic grid level"></select>
+          </section>
+
+          <section class="hint-tools" aria-label="Logic hint overlays">
+            <h2>Hint overlays</h2>
+            <div id="logicHintButtons" class="hint-buttons" role="list"></div>
+          </section>
+
+          <section id="logicHintPanel" class="hint-panel" aria-live="polite"></section>
+          <section id="logicCluePanel" class="logic-clue-panel" aria-label="Puzzle clues"></section>
+          <section id="logicMessagePanel" class="message-panel" aria-live="polite"></section>
+        </aside>
+      </main>
+    </div>
+
+    <div id="chemSearchShell" class="app-shell chem-search-shell" hidden>
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Chemistry word search</p>
+          <h1>Chemistry Word Search</h1>
+        </div>
+        <div class="top-actions" aria-label="Chemistry Word Search actions">
+          <button id="chemSearchHomeButton" class="button ghost" type="button">Home</button>
+          <button id="chemSearchThemeToggle" class="button ghost" type="button" aria-label="Toggle dark mode">Dark</button>
+        </div>
+      </header>
+
+      <main class="app-main chem-search-main">
+        <section class="board-section chem-search-board-section" aria-label="Chemistry word search board area">
+          <div id="chemSearchBoard" class="chem-search-board" role="grid" aria-label="Chemistry word search grid"></div>
+
+          <div class="action-row">
+            <button id="chemSearchHint" class="button primary" type="button">Hint</button>
+            <button id="chemSearchReset" class="button danger" type="button">Reset</button>
+          </div>
+        </section>
+
+        <aside class="side-panel" aria-label="Chemistry Word Search panel">
+          <div class="status-strip">
+            <span id="chemSearchDifficultyPill" class="pill">Level 1: Easy</span>
+            <span id="chemSearchProgressText">0/4 words</span>
+          </div>
+
+          <section class="level-tools" aria-label="Chemistry Word Search levels">
+            <h2>Levels</h2>
+            <select id="chemSearchLevelSelect" class="level-select" aria-label="Choose Chemistry Word Search level"></select>
+          </section>
+
+          <section class="hint-tools" aria-label="Chemistry word list">
+            <h2>Word Bank</h2>
+            <div id="chemSearchWordList" class="chem-search-word-list"></div>
+          </section>
+        </aside>
+      </main>
+    </div>
+
+    <!--
+    <div id="chessShell" class="app-shell chess-shell" hidden>
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Chess tactics trainer</p>
+          <h1>Chess</h1>
+        </div>
+        <div class="top-actions" aria-label="Chess game actions">
+          <button id="chessHomeButton" class="button ghost" type="button">Home</button>
+          <button id="chessThemeToggle" class="button ghost" type="button" aria-label="Toggle dark mode">Dark</button>
+        </div>
+      </header>
+
+      <main class="app-main chess-main">
+        <section class="board-section chess-board-section" aria-label="Chess board area">
+          <div id="chessBoard" class="chess-board" role="grid" aria-label="Chess tactics board"></div>
+
+          <div class="action-row">
+            <button id="chessHint" class="button primary" type="button">Hint</button>
+            <button id="chessCheck" class="button" type="button">Check</button>
+            <button id="chessReset" class="button danger" type="button">Reset</button>
+          </div>
+        </section>
+
+        <aside class="side-panel" aria-label="Chess learning panel">
+          <div class="status-strip">
+            <span id="chessDifficultyPill" class="pill">Level 1: Beginner</span>
+            <span id="chessTurnText">White to move</span>
+          </div>
+
+          <section class="level-tools" aria-label="Chess tactics levels">
+            <h2>Levels</h2>
+            <select id="chessLevelSelect" class="level-select" aria-label="Choose chess tactic level"></select>
+          </section>
+
+          <section id="chessLessonPanel" class="hint-panel" aria-live="polite"></section>
+          <section id="chessMessagePanel" class="message-panel" aria-live="polite"></section>
+        </aside>
+      </main>
+    </div>
+    -->
+
+    <div id="spiderShell" class="app-shell spider-shell" hidden>
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">One-suit solitaire trainer</p>
+          <h1>Spider Solitaire</h1>
+        </div>
+        <div class="top-actions" aria-label="Spider Solitaire actions">
+          <button id="spiderHomeButton" class="button ghost" type="button">Home</button>
+          <button id="spiderThemeToggle" class="button ghost" type="button" aria-label="Toggle dark mode">Dark</button>
+        </div>
+      </header>
+
+      <main class="app-main spider-main">
+        <section class="board-section spider-board-section" aria-label="Spider Solitaire table">
+          <div class="spider-stock-row">
+            <button id="spiderStock" class="spider-stock" type="button" aria-label="Deal one card to each column"></button>
+            <div id="spiderFoundations" class="spider-foundations" aria-label="Completed runs"></div>
+          </div>
+
+          <div id="spiderTableau" class="spider-tableau" aria-label="Spider Solitaire tableau"></div>
+
+          <div class="action-row">
+            <button id="spiderHint" class="button primary" type="button">Hint</button>
+            <button id="spiderCheck" class="button" type="button">Check</button>
+            <button id="spiderReset" class="button danger" type="button">Reset</button>
+          </div>
+        </section>
+
+        <aside class="side-panel" aria-label="Spider Solitaire learning panel">
+          <div class="status-strip">
+            <span id="spiderDifficultyPill" class="pill">One suit</span>
+            <span id="spiderProgressText">0/8 runs</span>
+          </div>
+
+          <section id="spiderLessonPanel" class="hint-panel" aria-live="polite"></section>
+          <section id="spiderMessagePanel" class="message-panel" aria-live="polite"></section>
+        </aside>
+      </main>
+    </div>
+
+    <div id="minesShell" class="app-shell mines-shell" hidden>
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Minesweeper trainer</p>
+          <h1>Minesweeper</h1>
+        </div>
+        <div class="top-actions" aria-label="Minesweeper actions">
+          <button id="minesHomeButton" class="button ghost" type="button">Home</button>
+          <button id="minesThemeToggle" class="button ghost" type="button" aria-label="Toggle dark mode">Dark</button>
+        </div>
+      </header>
+
+      <main class="app-main mines-main">
+        <section class="board-section mines-board-section" aria-label="Minesweeper board area">
+          <div id="minesBoard" class="mines-board" role="grid" aria-label="Minesweeper board"></div>
+          <div class="action-row">
+            <button id="minesReset" class="button danger" type="button">Reset</button>
+          </div>
+        </section>
+
+        <aside class="side-panel" aria-label="Minesweeper learning panel">
+          <div class="status-strip">
+            <span id="minesDifficultyPill" class="pill">Level 1: Beginner</span>
+            <span id="minesProgressText">0 safe cells</span>
+          </div>
+
+          <section class="level-tools" aria-label="Minesweeper levels">
+            <h2>Levels</h2>
+            <select id="minesLevelSelect" class="level-select" aria-label="Choose Minesweeper level"></select>
+          </section>
+
+          <section id="minesLessonPanel" class="hint-panel" aria-live="polite"></section>
+          <section id="minesMessagePanel" class="message-panel" aria-live="polite"></section>
+        </aside>
+      </main>
+    </div>
+
+    <div id="masterShell" class="app-shell master-shell" hidden>
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Code-breaking trainer</p>
+          <h1>Mastermind</h1>
+        </div>
+        <div class="top-actions" aria-label="Mastermind actions">
+          <button id="masterHomeButton" class="button ghost" type="button">Home</button>
+          <button id="masterThemeToggle" class="button ghost" type="button" aria-label="Toggle dark mode">Dark</button>
+        </div>
+      </header>
+
+      <main class="app-main master-main">
+        <section class="board-section master-board-section" aria-label="Mastermind board area">
+          <div id="masterBoard" class="master-board-play" aria-label="Mastermind guesses"></div>
+          <div id="masterPalette" class="master-palette" aria-label="Color palette"></div>
+
+          <div class="action-row">
+            <button id="masterReset" class="button danger" type="button">Reset</button>
+          </div>
+        </section>
+
+        <aside class="side-panel" aria-label="Mastermind learning panel">
+          <div class="status-strip">
+            <span id="masterDifficultyPill" class="pill">Level 1: Beginner</span>
+            <span id="masterProgressText">0/8 guesses</span>
+          </div>
+
+          <section class="level-tools" aria-label="Mastermind levels">
+            <h2>Levels</h2>
+            <select id="masterLevelSelect" class="level-select" aria-label="Choose Mastermind level"></select>
+          </section>
+
+          <section id="masterLessonPanel" class="hint-panel" aria-live="polite"></section>
+          <section id="masterMessagePanel" class="message-panel" aria-live="polite"></section>
+        </aside>
+      </main>
+    </div>
+
+    <div id="wordShell" class="app-shell word-shell" hidden>
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Word deduction trainer</p>
+          <h1>Word Vault</h1>
+        </div>
+        <div class="top-actions" aria-label="Word Vault actions">
+          <button id="wordHomeButton" class="button ghost" type="button">Home</button>
+          <button id="wordThemeToggle" class="button ghost" type="button" aria-label="Toggle dark mode">Dark</button>
+        </div>
+      </header>
+
+      <main class="app-main word-main">
+        <section class="board-section word-board-section" aria-label="Word Vault board area">
+          <div id="wordBoard" class="word-board-play" aria-label="Word guesses"></div>
+          <div id="wordKeyboard" class="word-keyboard" aria-label="Word keyboard"></div>
+
+          <div class="action-row">
+            <button id="wordNext" class="button primary" type="button">Next</button>
+            <button id="wordReset" class="button danger" type="button">Reset</button>
+          </div>
+        </section>
+
+        <aside class="side-panel" aria-label="Word Vault learning panel">
+          <div class="status-strip">
+            <span id="wordDifficultyPill" class="pill">Level 1: Beginner</span>
+            <span id="wordProgressText">0/6 guesses</span>
+          </div>
+
+          <section class="level-tools" aria-label="Word Vault levels">
+            <h2>Levels</h2>
+            <select id="wordLevelSelect" class="level-select" aria-label="Choose Word Vault level"></select>
+          </section>
+
+          <section id="wordLessonPanel" class="hint-panel" aria-live="polite"></section>
+          <section id="wordMessagePanel" class="message-panel" aria-live="polite"></section>
+        </aside>
+      </main>
+    </div>
+    <div id="arcadeCelebration" class="arcade-celebration" aria-live="polite" hidden></div>
     <script src="src/sudoku-core.js"></script>
     <script src="src/app.js"></script>
   </body>

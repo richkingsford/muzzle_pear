@@ -2,6 +2,8 @@
 
 This document describes the quality bar for the Sudoku experience and the hint overlay system. Treat it as the reference template for every future game in this arcade: each game should have a clear end-to-end contract, playful visual behavior, understandable teaching moments, and automated checks that protect the parts users actually notice.
 
+For Grid Logic-specific hint rules, use `docs/grid-logic-hint-rules.md`.
+
 ## Product Promise
 
 Sudoku is not just a playable board. It is a teaching tool that helps a player see why a move is available.
@@ -248,7 +250,6 @@ Examples from the current home screen:
 - Minesweeper centers the explosion on the bomb.
 - Mastermind simulates guesses, feedback pins, and one row that fills on hover.
 - Word Vault starts with upside-down letters that flip on hover.
-- Arithmettle uses arithmetic rows rather than copying the word game exactly.
 
 ## Required Verification
 
